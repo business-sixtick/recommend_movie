@@ -1,0 +1,5 @@
+procedure
+1. fetch
+2. pull
+3. commit
+4. push
