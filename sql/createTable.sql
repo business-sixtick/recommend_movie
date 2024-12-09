@@ -6,7 +6,6 @@ use movie;
 
 create table posters (
     id int auto-increment primary key,
-	image longblob not null, 
     title varchar(255) not null,
     relYear int not null,
     rating varchar(20) not null,
@@ -19,6 +18,12 @@ create table posters (
     nation varchar(255) not null,
     etc varchar(255)
 );
+
+mysql> CREATE TABLE movPos (
+    ->     id INT AUTO_INCREMENT,
+    ->     img LONGBLOB NOT NULL,
+    ->     PRIMARY KEY (id)
+    -> );
 
 select * from posters;
 
