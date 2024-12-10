@@ -1,0 +1,18 @@
+
+
+- 우분투 원격지 vscode 연결하기 
+    vscode 에서 좌하단 꺽쇠표시 눌러서 호스트 등록
+    ssh sixtick@192.168.0.16       // LLM 서버로 활용할 예정임
+
+
+- 파이썬 환경
+    source ~/venv/bin/activate     // 가상환경 활성화. pip 실행하려면 가상환경에서 해야함. 
+
+- vscode
+    명령 팔렛트를 열어 git:clone 을 실행한다. 
+
+- fastAPI (우분투 환경)
+    파이썬 기반의 경량 api 서버. 파이썬 3.7 이상에서 동작한다. (python3 --version 3.12.3)
+    pip install fastapi uvicorn     // 관련 모듈 설치
+    uvicorn main:app --reload       // 앱 실행 (main.py의 app 객체를 실행하는것임. --reload 옵션은 코드변경시 서버를 자동으로 재시작함)
+    기본적으로 127.0.0.1:8000 에서 시작됨.
