@@ -16,7 +16,7 @@
     pip install "fastapi[all]"    //  의존성 체크하면서 설치함. uvicorn 포함 이것저것
     uvicorn main:app --reload       // 앱 실행 (main.py의 app 객체를 실행하는것임. --reload 옵션은 코드변경시 서버를 자동으로 재시작함)
     기본적으로 127.0.0.1:8000 에서 시작됨.
-    uvicorn main:app --reload --host 0.0.0.0 --port 18000    // 실제 운영할 주소
+    uvicorn main:app --reload --host 0.0.0.0 --port 18000    // 실제 운영할 주소, 명령어
 
     
 - 방화벽 열기
@@ -29,4 +29,5 @@
 
 
 - LLM 모델
-    https://huggingface.co/MLP-KTLim/llama-3-Korean-Bllossom-8B
+    https://huggingface.co/MLP-KTLim/llama-3-Korean-Bllossom-8B          // 양자화 모델
+    https://www.llama.com/docs/model-cards-and-prompt-formats/llama3_1        // 모델 및 프롬프트 형식
