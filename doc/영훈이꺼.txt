@@ -31,3 +31,31 @@
 - LLM 모델
     https://huggingface.co/MLP-KTLim/llama-3-Korean-Bllossom-8B          // 양자화 모델
     https://www.llama.com/docs/model-cards-and-prompt-formats/llama3_1        // 모델 및 프롬프트 형식
+
+
+- 라마 환경설정
+# 리눅스
+# sudo apt install curl
+# curl -fsSL https://ollama.com/install.sh | sh
+
+# ollama pull llama3.1
+# ollama run llama3.1
+
+# sudo apt update
+# sudo apt install build-essential cmake                 ## llama_cpp_python 설치할때 c++파일을 빌드하면서 설치한다. 그래서 cmake를 필요로 한다. 
+# pip install transformers langchain langchain-community vllm llama_cpp_python                        ## 3.1
+
+# 우선 모델을 다운받는다 .gguf 파일
+# ############# huggingface-cli download MLP-KTLim/llama-3-Korean-Bllossom-8B-gguf-Q4_K_M
+# ############# Download complete. Moving file to /home/sixtick/.cache/huggingface/hub/models--MLP-KTLim--llama-3-Korean-Bllossom-8B-gguf-Q4_K_M/blobs/fcb8006481e20379e4369a3169747b11fbad7038
+# huggingface-cli download MLP-KTLim/llama-3-Korean-Bllossom-8B-gguf-Q4_K_M --local-dir='/home/sixtick/ollama/'
+# echo "FROM ./llama-3-Korean-Bllossom-8B-Q4_K_M.gguf" > Modelfile
+# ollama create kor8b -f Modelfile
+# ollama run kor8b
+
+# 3.2 버전 3B 한국어 버전
+# huggingface-cli download Bllossom/llama-3.2-Korean-Bllossom-3B-gguf-Q4_K_M --local-dir='/home/sixtick/ollama/'
+# cd /home/sixtick/ollama/
+# echo "FROM ./llama-3.2-Korean-Bllossom-3B-gguf-Q4_K_M.gguf" > Modelfile
+# ollama create kor3b -f Modelfile
+# ollama run kor3b
