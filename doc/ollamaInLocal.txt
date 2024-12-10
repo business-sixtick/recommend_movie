@@ -1,0 +1,130 @@
+----------------------------------------리눅스
+
+리눅스 배포판 정보 확인
+aiteam@USER:/mnt/c/Users/acy$ lsb_release -a
+No LSB modules are available.
+Distributor ID: Ubuntu
+Description:    Ubuntu 22.04.3 LTS
+Release:        22.04
+Codename:       jammy
+
+지금 내 경로는 어딜까요
+ahncho@USER:~$ pwd
+
+네트워크 정보 확인
+ahncho@USER:~$ ip a
+
+sudo apt update
+sudo apt upgrade
+
+설치된 배포판 확인
+wsl --list --verbose
+
+특정 배포판 실행
+wsl -d Ubuntu-22.04
+
+특정 배포판을 기본으로 설정
+wsl --setdefault Ubuntu-22.04
+
+리눅스 유저 홈
+ahncho@USER:/mnt/c/Users/acy$ cd ~
+ahncho@USER:~$ pwd
+/home/ahncho
+
+
+----------------------------------------------------------올라마와 가상환경
+
+올라마를 다운받기 위해선 curl이 필요하다
+sudo apt install curl
+
+curl -fsSL https://ollama.com/install.sh | sh
+
+가져오기
+ollama pull llama3.1
+
+잘 작동하나 테스트
+ollama run llama3.1
+
+c/c++ 프로그램 개발에 필요한 필수 도구 모음과 크로스 플랫폼 빌드 시스템을 위한 도구
+sudo apt install build-essential cmake
+
+가상환경 만들기 전에 파이썬 설정
+venv와 pip 패키지 관리자가 함께 설치됩니다
+sudo apt install python3 python3-venv python3-pip
+
+가상환경 만들기
+ahncho@USER:~$ python3 -m venv mov
+ahncho@USER:~$ ls
+ahncho  mov
+
+내가 사용할 가상환경
+mov
+
+가상환경 활성화
+source mov/bin/activate
+
+필요한 모듈 설치
+pip install transformers langchain langchain-community vllm llama_cpp_python
+
+모델을 내가 지정한 경로에 저장한다
+huggingface-cli download MLP-KTLim/llama-3-Korean-Bllossom-8B-gguf-Q4_K_M --local-dir='/home/ahncho/ollama/'
+
+(mov) ahncho@USER:~$ ls
+ahncho  mov  ollama
+(mov) ahncho@USER:~$ cd ollama
+(mov) ahncho@USER:~/ollama$ ls
+README.md                               special_tokens_map.json  tokenizer_config.json
+llama-3-Korean-Bllossom-8B-Q4_K_M.gguf  tokenizer.json
+
+문자열을 > 뒤에 지정된 파일로 저장한다
+(mov) ahncho@USER:~/ollama$ echo "FROM ./llama-3-Korean-Bllossom-8B-Q4_K_M.gguf" > Modelfile
+(mov) ahncho@USER:~/ollama$ ls
+Modelfile  llama-3-Korean-Bllossom-8B-Q4_K_M.gguf  tokenizer.json
+README.md  special_tokens_map.json                 tokenizer_config.json
+
+올라마에서 새로운 언어 모델 생성
+ollama create kor8b -f Modelfile
+
+실행
+ollama run kor8b
+
+
+--------------------------------------------------ssh
+
+외부에서 접속하려는데 ssh 필요함
+그런데 상태가 inactive
+
+(mov) ahncho@USER:~/ollama$ ip a
+1----루프백, 자기 자신, 로컬 호스트
+2----외부에서 접속하려면 필요함
+
+이렇게 접속하는데 
+PS C:\Users\acy> ssh ahncho@172.22.167.219
+ssh: connect to host 172.22.167.219 port 22: Connection refused
+ssh 때문에 거부 당한다
+
+(mov) ahncho@USER:~/ollama$ sudo apt list --installed | grep openssh-server
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+openssh-server/focal-updates,focal-security,now 1:8.2p1-4ubuntu0.11 amd64 [installed]
+(mov) ahncho@USER:~/ollama$ sudo systemctl status ssh
+● ssh.service - OpenBSD Secure Startedhell server
+     Loaded: loaded (/lib/systemd/system/ssh.service; disabled; vendor preset: enabled)
+     Active: inactive (dead)    ----active 상태가 되어야 접속이 가능하다
+       Docs: man:sshd(8)
+             man:sshd_config(5)
+
+(mov) ahncho@USER:~/ollama$ sudo systemctl start ssh
+(mov) ahncho@USER:~/ollama$ sudo systemctl status ssh
+● ssh.service - OpenBSD Secure Shell server
+     Loaded: loaded (/lib/systemd/system/ssh.service; disabled; vendor preset: enabled)
+     Active: active (running) since Tue 2024-12-10 18:13:33 KST; 35s ago      ----이 상태로 이제 접속 시도
+
+이러면 아마 외부에서 접속 시 매번 비번을 누르고 들어가야 할 듯
+(mov) ahncho@USER:~/ollama$ sudo systemctl enable ssh
+
+접속 거부 당할 시
+(mov) ahncho@USER:~/ollama$ sudo nano /etc/ssh/sshd_config
+PasswordAuthentication yes 로 바꾸기
+(mov) ahncho@USER:~/ollama$ sudo systemctl restart ssh
