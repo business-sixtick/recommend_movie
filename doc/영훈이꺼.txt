@@ -13,6 +13,6 @@
 
 - fastAPI (우분투 환경)
     파이썬 기반의 경량 api 서버. 파이썬 3.7 이상에서 동작한다. (python3 --version 3.12.3)
-    pip install fastapi uvicorn     // 관련 모듈 설치
+    pip install "fastapi[all]"    //  의존성 체크하면서 설치함. uvicorn 포함 이것저것
     uvicorn main:app --reload       // 앱 실행 (main.py의 app 객체를 실행하는것임. --reload 옵션은 코드변경시 서버를 자동으로 재시작함)
     기본적으로 127.0.0.1:8000 에서 시작됨.
