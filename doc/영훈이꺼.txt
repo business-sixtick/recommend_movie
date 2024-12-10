@@ -16,3 +16,13 @@
     pip install "fastapi[all]"    //  의존성 체크하면서 설치함. uvicorn 포함 이것저것
     uvicorn main:app --reload       // 앱 실행 (main.py의 app 객체를 실행하는것임. --reload 옵션은 코드변경시 서버를 자동으로 재시작함)
     기본적으로 127.0.0.1:8000 에서 시작됨.
+    uvicorn main:app --reload --host 0.0.0.0 --port 18000    // 실제 운영할 주소
+
+    
+- 방화벽 열기
+    sudo iptables --list
+    sudo iptables -I INPUT 1 -p tcp --dport 18000 -j ACCEPT
+    sudo apt install iptables-persistent     
+    sudo iptables-save | sudo tee /etc/iptables/rules.v4
+    sudo ip6tables-save | sudo tee /etc/iptables/rules.v6
+    ss -tuln

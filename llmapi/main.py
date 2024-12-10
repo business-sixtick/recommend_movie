@@ -1,5 +1,6 @@
 from fastapi import FastAPI    # FastAPI 는 Starlette 를 직접 상속하는 클래스임.
 from fastapi.staticfiles import StaticFiles
+import uvicorn
 
 from langchain.chains import LLMChain
 from langchain import PromptTemplate
@@ -50,3 +51,6 @@ async def read_llm(text: str, q: str = None):
 # "static" 디렉토리를 정적 파일 제공 경로로 설정
 app.mount("/", StaticFiles(directory="static", html=True), name="static")   # / 를 라우팅 할때 다른것들과 충돌 함. 맨 아래로 이동했음. 또는 경로를 /name 명확히 할 수 도 있음. 
 
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=18000)        #python main.py 로 실행시 작동
