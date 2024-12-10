@@ -18,6 +18,15 @@ prompt = PromptTemplate(
 chain = LLMChain(llm = llm , prompt = prompt)
 chain.run('대한민국')
 
+# 역할을 설정할수있다.
+# PROMPT = '''You are a helpful AI assistant. Please answer the user's questions kindly. 당신은 유능한 AI 어시스턴트 입니다. 사용자의 질문에 대해 친절하게 답변해주세요.'''
+# instruction = "서울의 유명한 관광 코스를 만들어줄래?"
+
+# messages = [
+#     {"role": "system", "content": f"{PROMPT}"},
+#     {"role": "user", "content": f"{instruction}"}
+#     ]
+
 # FastAPI 애플리케이션 인스턴스 생성
 app = FastAPI()
 

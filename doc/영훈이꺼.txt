@@ -26,3 +26,7 @@
     sudo iptables-save | sudo tee /etc/iptables/rules.v4
     sudo ip6tables-save | sudo tee /etc/iptables/rules.v6
     ss -tuln
+
+
+- LLM 모델
+    https://huggingface.co/MLP-KTLim/llama-3-Korean-Bllossom-8B
