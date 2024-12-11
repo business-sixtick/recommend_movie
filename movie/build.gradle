@@ -29,9 +29,22 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.mysql:mysql-connector-j'
-	//implementation group: 'mysql', name: 'mysql-connector-java', version: '5.1.47'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-security
+	//스프링 시큐리티를 사용하기 위한 스타터
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '3.2.4'
+	// https://mvnrepository.com/artifact/org.thymeleaf.extras/thymeleaf-extras-springsecurity6
+	//타임리프에서 시큐리티를 사용하기 위함
+	implementation group: 'org.thymeleaf.extras', name: 'thymeleaf-extras-springsecurity6', version: '3.1.2.RELEASE'
+	implementation 'io.jsonwebtoken:jjwt:0.9.1' //자바 jwt 라이브러리
+	// https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api
+	implementation group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1' //xml 문서와 java 객체 간 매핑을 자동화한다
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	// https://mvnrepository.com/artifact/org.springframework.security/spring-security-test
+	//시큐리티 테스트용
+	testImplementation group: 'org.springframework.security', name: 'spring-security-test', version: '4.2.3.RELEASE'
+	// https://mvnrepository.com/artifact/org.mockito/mockito-core
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 

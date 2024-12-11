@@ -6,8 +6,10 @@ import org.springframework.stereotype.Service;
 
 import com.recommend.movie.springbootdeveloper.domain.Article;
 import com.recommend.movie.springbootdeveloper.dto.AddArticleRequest;
+import com.recommend.movie.springbootdeveloper.dto.UpdateArticleRequest;
 import com.recommend.movie.springbootdeveloper.repository.BlogRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -33,5 +35,12 @@ public class BlogService {
         blogRepository.deleteById(id);
     }
 
-    @transc
+    @Transactional //두 작업을 한 단위로 묶어서 오류 발생을 막는다
+    public Article update(long id, UpdateArticleRequest request){
+        Article article = blogRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("not found: " + id));
+
+        article.update(request.getTitle(), request.getContent());
+
+        return article;
+    }
 }

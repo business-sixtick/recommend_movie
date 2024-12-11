@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import com.recommend.movie.springbootdeveloper.domain.Article;
 import com.recommend.movie.springbootdeveloper.dto.AddArticleRequest;
 import com.recommend.movie.springbootdeveloper.dto.ArticleResponse;
+import com.recommend.movie.springbootdeveloper.dto.UpdateArticleRequest;
 import com.recommend.movie.springbootdeveloper.service.BlogService;
 
 import lombok.RequiredArgsConstructor;
@@ -53,5 +54,11 @@ public class BlogApiController {
     public ResponseEntity<Void> deleteArticle(@PathVariable long id){
         blogService.delete(id);
         return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/api/articles/{id}")
+    public ResponseEntity<Article> updateArticle(@PathVariable long id, @RequestBody UpdateArticleRequest request){
+        Article updateArticle = blogService.update(id, request);
+        return ResponseEntity.ok().body(updateArticle);
     }
 }

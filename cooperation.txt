@@ -1,5 +1,9 @@
-procedure
+깃허브 작업물 업로드 시 절차
 1. fetch
 2. pull
 3. commit
 4. push
+
+
+데이터베이스 접속, 파워셸에서 진행
+PS C:\Users\acy> mysql -u ahncho -p -h 192.168.0.26 -P 3306
