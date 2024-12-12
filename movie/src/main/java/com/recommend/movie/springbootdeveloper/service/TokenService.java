@@ -19,9 +19,9 @@ public class TokenService {
 
     public String createNewAccessToken(String refreshToken){
         if(!tokenProvider.validToken(refreshToken)){
-            //전달받은 리프레시 토큰으로 유효성을 검사한다다
+            //전달받은 리프레시 토큰으로 유효성을 검사한다
             throw new IllegalArgumentException("unexpected token");
-            //실패할 시 예외 발생생
+            //실패할 시 예외 발생
         }
 
     Long userId = refreshTokenService.findByRefreshToken(refreshToken).getUserId();
