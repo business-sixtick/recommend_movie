@@ -7,4 +7,3 @@ show tables;
 select * from movInfo;
 
 select * from movPos;
-

@@ -22,4 +22,9 @@ public class UserService {
                 .password(bCryptPasswordEncoder.encode(dto.getPassword()))
                 .build()).getId();
     }
+
+    public User findById(Long userId){
+        return userRepository.findById(userId) //유저 아이디로 유저 검색하기기
+            .orElseThrow(() -> new IllegalArgumentException("unexpected user"));
+    }
 }

@@ -1,6 +1,6 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.2.0'
+	id 'org.springframework.boot' version '3.4.0'
 	id 'io.spring.dependency-management' version '1.1.6'
 }
 
@@ -26,28 +26,31 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	compileOnly 'org.projectlombok:lombok'
+	// compileOnly 'org.projectlombok:lombok'
+	compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.24'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-security
-	//스프링 시큐리티를 사용하기 위한 스타터
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '3.2.4'
-	// https://mvnrepository.com/artifact/org.thymeleaf.extras/thymeleaf-extras-springsecurity6
-	//타임리프에서 시큐리티를 사용하기 위함
 	implementation group: 'org.thymeleaf.extras', name: 'thymeleaf-extras-springsecurity6', version: '3.1.2.RELEASE'
-	implementation 'io.jsonwebtoken:jjwt:0.9.1' //자바 jwt 라이브러리
-	// https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api
-	implementation group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1' //xml 문서와 java 객체 간 매핑을 자동화한다
+	// implementation 'io.jsonwebtoken:jjwt:0.9.1'
+	implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.2'
+	runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.2'
+	runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.2'
+	// implementation group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1' 
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter', version: '2.7.18'
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-configuration-processor
+	implementation group: 'org.springframework.boot', name: 'spring-boot-configuration-processor', version: '3.4.0'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	// https://mvnrepository.com/artifact/org.springframework.security/spring-security-test
-	//시큐리티 테스트용
-	testImplementation group: 'org.springframework.security', name: 'spring-security-test', version: '4.2.3.RELEASE'
-	// https://mvnrepository.com/artifact/org.mockito/mockito-core
+	testImplementation group: 'org.springframework.security', name: 'spring-security-test', version: '5.6.2'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.24'
+	testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+// .\gradlew clean build

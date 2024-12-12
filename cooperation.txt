@@ -5,5 +5,6 @@
 4. push
 
 
-데이터베이스 접속, 파워셸에서 진행
-PS C:\Users\acy> mysql -u ahncho -p -h 192.168.0.26 -P 3306
+인텔리제이 ultimate를 다시 이용할려면 
+1. 제어판에서 앱 제거
+2. C:\Users\acy>regedit 명령 프롬프트에서 다음을 작성하고 intellij 파일 제거

@@ -33,7 +33,7 @@ class TokenProviderTest {
     @Test
     void generateToken(){
         User testUser = userRepository.save(User.builder()
-                        .email("user@gmail.com")
+                        .email("user2@gmail.com")
                         .password("test")
                 .build());
 
@@ -95,3 +95,6 @@ class TokenProviderTest {
         assertThat(userIdByToken).isEqualTo(userId);
     }
 }
+
+// 테스트 폴더 파일에 롬복을 import했는데 인식을 못 해서 잠시 넘어간다
+// 책에서는 280 페이지 근방
