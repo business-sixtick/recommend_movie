@@ -17,7 +17,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.recommend.movie.springbootdeveloper.service.UserDetailService;
 
-// import static org.springframework.boot.autoconfigure.security.servlet.PathRequest.toH2Console;
+import static org.springframework.boot.autoconfigure.security.servlet.PathRequest.toH2Console;
 
 @Configuration
 @EnableWebSecurity
@@ -39,8 +39,8 @@ public class WebSecurityConfig {
         return http.authorizeRequests(auth -> auth
                 .requestMatchers(new AntPathRequestMatcher("/login"),
                         new AntPathRequestMatcher("/signup"),
-                        new AntPathRequestMatcher("/user"))
-//                        ,new AntPathRequestMatcher("/api/token")) //
+                        new AntPathRequestMatcher("/user"),
+                        new AntPathRequestMatcher("/articles")) //
                 .permitAll()
                 .anyRequest().authenticated())
                 .formLogin(formLogin -> formLogin
@@ -52,6 +52,25 @@ public class WebSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // csrf 비활성화. 테스트시에 번거러우니까능
                 .build();
     }
+
+    // @Bean
+    // public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    //     return http
+    //         .authorizeRequests(auth -> auth
+    //             .requestMatchers("/login", "/signup", "/user", "/articles").permitAll() // 로그인, 회원가입, /articles 등 공개
+    //             .anyRequest().authenticated() // 그 외 요청은 인증 필요
+    //         )
+    //         .formLogin(formLogin -> formLogin
+    //             .loginPage("/login")
+    //             .defaultSuccessUrl("/articles") // 로그인 후 /articles로 리디렉션
+    //         )
+    //         .logout(logout -> logout
+    //             .logoutSuccessUrl("/articles") // 로그아웃 후 /articles로 리디렉션
+    //             .invalidateHttpSession(true)
+    //         )
+    //         .csrf(AbstractHttpConfigurer::disable) // CSRF 비활성화
+    //         .build();
+    // }
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http, BCryptPasswordEncoder bCryptPasswordEncoder,

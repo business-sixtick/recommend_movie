@@ -69,10 +69,6 @@ public class TokenProvider {
         return claims.get("id", Long.class);
     }
 
-
-
-
-
     private Claims getClaims(String token){
         return Jwts.parser().setSigningKey(jwtProperties.getSecretKey())
                 .parseClaimsJws(token)

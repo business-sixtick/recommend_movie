@@ -24,11 +24,11 @@
             <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
             <div class="mb-3">
               <label class="form-label text-white">Email address</label>
-              <input type="email" class="form-control" name="username">
+              <input type="email" class="form-control" name="username" required>
             </div>
             <div class="mb-3">
               <label class="form-label text-white">Password</label>
-              <input type="password" class="form-control" name="password">
+              <input type="password" class="form-control" name="password" required>
             </div>
             <button type="submit" class="btn btn-primary">Submit</button>
           </form>
@@ -39,5 +39,12 @@
     </div>
   </div>
 </section>
+
+<script src="/js/article.js"></script>
+
+<script>
+  document.getElementById('loginForm').addEventListener('submit', login);
+</script>
+
 </body>
 </html>
