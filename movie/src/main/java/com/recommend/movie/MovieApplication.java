@@ -12,6 +12,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @SpringBootApplication(exclude = {
     org.springframework.boot.autoconfigure.h2.H2ConsoleAutoConfiguration.class,
     // org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration.class
+	//스프링 부트가 db 연결을 설정할 대 사용하는 기본적인 클래스
+	//이것을 제외하면 db와 연결할 수 없다
 })
 public class MovieApplication {
 	public static void main(String[] args) {

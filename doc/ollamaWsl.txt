@@ -1,4 +1,4 @@
-----------------------------------------리눅스
+----------------------리눅스
 
 리눅스 배포판 정보 확인
 aiteam@USER:/mnt/c/Users/acy$ lsb_release -a
@@ -32,7 +32,7 @@ ahncho@USER:~$ pwd
 /home/ahncho
 
 
-----------------------------------------------------------올라마와 가상환경
+--------------------------------------올라마와 가상환경
 
 올라마를 다운받기 위해선 curl이 필요하다
 sudo apt install curl
@@ -89,7 +89,7 @@ ollama create kor8b -f Modelfile
 ollama run kor8b
 
 
---------------------------------------------------ssh
+------------------------------ssh
 
 외부에서 접속하려는데 ssh 필요함
 그런데 상태가 inactive
@@ -109,17 +109,9 @@ WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
 
 openssh-server/focal-updates,focal-security,now 1:8.2p1-4ubuntu0.11 amd64 [installed]
 (mov) ahncho@USER:~/ollama$ sudo systemctl status ssh
-● ssh.service - OpenBSD Secure Startedhell server
-     Loaded: loaded (/lib/systemd/system/ssh.service; disabled; vendor preset: enabled)
-     Active: inactive (dead)    ----active 상태가 되어야 접속이 가능하다
-       Docs: man:sshd(8)
-             man:sshd_config(5)
 
 (mov) ahncho@USER:~/ollama$ sudo systemctl start ssh
 (mov) ahncho@USER:~/ollama$ sudo systemctl status ssh
-● ssh.service - OpenBSD Secure Shell server
-     Loaded: loaded (/lib/systemd/system/ssh.service; disabled; vendor preset: enabled)
-     Active: active (running) since Tue 2024-12-10 18:13:33 KST; 35s ago      ----이 상태로 이제 접속 시도
 
 이러면 아마 외부에서 접속 시 매번 비번을 누르고 들어가야 할 듯
 (mov) ahncho@USER:~/ollama$ sudo systemctl enable ssh
