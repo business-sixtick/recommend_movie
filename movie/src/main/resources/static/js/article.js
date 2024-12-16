@@ -57,7 +57,9 @@ if (createButton){
     });
 }
 
-
+// 상황별 보여야 할 버튼 
+// 로그인 전: 로그인 >> 로그인, 회원가입
+// 로그인 후: (로그인 버튼 자리에) 로그아웃
 
 function isLoggedIn() {
     return !!localStorage.getItem('accessToken'); // 토큰 존재 여부 확인
@@ -81,6 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+console.log('test 1');
 
 async function login(event) {
     event.preventDefault();
@@ -92,6 +95,25 @@ async function login(event) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
+        });
+        if (response.ok) {
+            const { accessToken } = await response.json();
+            localStorage.setItem('accessToken', accessToken); // 토큰 저장
+            window.location.href = '/articles'; // 로그인 후 이동
+        } else {
+            alert('Login failed!');
+        }
+    } catch (error) {
+        console.error('Error logging in:', error);
+    }
+}
+
+async function getToken() {
+
+    try {
+        const response = await fetch('/api/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
         });
         if (response.ok) {
             const { accessToken } = await response.json();

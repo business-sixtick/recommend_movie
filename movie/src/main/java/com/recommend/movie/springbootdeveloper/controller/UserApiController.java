@@ -24,7 +24,7 @@ public class UserApiController {
     public String signup(AddUserRequest request){
         userService.save(request);
         return "redirect:/login"; //처리가 끝나면 강제로 이 url로 이동한다
-    }
+    } 
 
     @GetMapping("/logout") //로그아웃 메서드
     public String logout(HttpServletRequest request, HttpServletResponse response){
