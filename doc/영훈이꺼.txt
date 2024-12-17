@@ -1,8 +1,11 @@
 
 
-- 우분투 원격지 vscode 연결하기 
+- 우분투 원격지에서서 vscode 연결하기 
     vscode 에서 좌하단 꺽쇠표시 눌러서 호스트 등록
     ssh sixtick@192.168.0.16       // LLM 서버로 활용할 예정임
+    패스워드 입력
+    폴더 오픈 /home/sixtick/venv/source/recommend_movie/ 
+    패스워드 입력력
 
 - 테스트하기 
     ssh sixtick@192.168.0.16                             // 원격접속

@@ -8,7 +8,7 @@ from langchain.llms.ollama import Ollama # ollama LLM모델
 
 llm = Ollama(base_url='http://127.0.0.1:11434', model='kor8b')
 prompt = PromptTemplate(
-    input_variables = ['description'],
+    input_variables = ['role', 'query'],
     # template=(
     #     "다음 설명에 어울리는 영화 제목을 콤마로 구분된 문자열로 반환해줘:\n"
     #     "설명: {description}\n"
@@ -16,8 +16,8 @@ prompt = PromptTemplate(
     # )
 
     template =(
-        '''<|start_header_id|> system <|end_header_id|> "사용자가 제시하는 단어에 관계가 높은 영화 제목을 알려줘. 응답 형식은 콤마로 구분된 제목만으로 작성해줘."
-<|start_header_id|> user <|end_header_id|> "{description}" '''
+        '''<|start_header_id|> system <|end_header_id|> "{role}"
+<|start_header_id|> user <|end_header_id|> "{query}" '''
     )
 )
 chain = LLMChain(llm = llm , prompt = prompt)
@@ -43,14 +43,14 @@ async def read_text(text: str, q: str = None):
     return {"text": text, "q": q}
 
 
-@app.get("/llm/{text}")
-async def read_llm(text: str, q: str = None):
+@app.get("/llm")
+async def read_llm(role: str ="사용자가 제시하는 단어에 연관이 깊은 영화 제목을 콤마로 구분해서 제목만 나열해줘.", query: str = "정우성"):
     """
     ex)
-    /llm/질의내용
+    /llm?role=영화박사&query=정우성
     """
-    answer = chain.run(text)
-    return {"llm": text, "q": q, "answer" : answer}
+    answer = chain.run({"role":role, "query": query})
+    return {"role": role, "query": query, "answer": answer}
 
 
 # "static" 디렉토리를 정적 파일 제공 경로로 설정
