@@ -4,6 +4,12 @@
     vscode 에서 좌하단 꺽쇠표시 눌러서 호스트 등록
     ssh sixtick@192.168.0.16       // LLM 서버로 활용할 예정임
 
+- 테스트하기 
+    ssh sixtick@192.168.0.16                             // 원격접속
+    source venv/bin/activate                             // 파이썬 가상환경 켜기
+    cd venv/source/recommend_movie/llmapi/               //실행코드로 이동
+    uvicorn main:app --reload --host 0.0.0.0 --port 18000    // 서버 실행         
+    http://192.168.0.16:18000/llm/정우성                      // 브라우저에서 테스트
 
 - 파이썬 환경
     source ~/venv/bin/activate     // 가상환경 활성화. pip 실행하려면 가상환경에서 해야함. 
