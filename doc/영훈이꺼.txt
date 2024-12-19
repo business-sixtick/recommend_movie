@@ -5,7 +5,7 @@
     ssh sixtick@192.168.0.16       // LLM 서버로 활용할 예정임
     패스워드 입력
     폴더 오픈 /home/sixtick/venv/source/recommend_movie/ 
-    패스워드 입력력
+    패스워드 입력
 
 - 테스트하기 
     ssh sixtick@192.168.0.16                             // 원격접속
