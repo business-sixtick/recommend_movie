@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, Request, Form
+from fastapi import FastAPI, Depends, HTTPException, Request, Form, Cookie
 from fastapi.responses import RedirectResponse
 from passlib.context import CryptContext
 from jose import JWTError, jwt
@@ -12,6 +12,9 @@ from fastapi.templating import Jinja2Templates
 from starlette.requests import Request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
+from typing import Optional
+import json
+import base64
 
 # Database configuration
 # DATABASE_URL = "mysql+pymysql://username:password@localhost/db_name"
@@ -110,6 +113,14 @@ def get_current_user(token: str, db: Session = Depends(get_db)):
 # 템플릿 디렉토리 설정
 templates = Jinja2Templates(directory="templates")
 
+
+
+
+# 회원 가입 페이지 제공
+@app.get("/register", response_class=HTMLResponse)
+def register_page(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
+
 # 회원 가입을 처리하는 api
 @app.post("/register", response_model=dict)
 def register(username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
@@ -129,13 +140,23 @@ def register(username: str = Form(...), password: str = Form(...), db: Session =
     db.refresh(new_user)
     return RedirectResponse(url="/login", status_code=303)
 
-# 회원 가입 페이지 제공
-@app.get("/register", response_class=HTMLResponse)
-def register_page(request: Request):
-    return templates.TemplateResponse("register.html", {"request": request})
 
 
 
+
+def decode_jwt(token: str):
+    # JWT 토큰을 '.' 기준으로 분리
+    header_b64, payload_b64, signature_b64 = token.split(".")
+    
+    # Base64 URL 디코딩 (JWT는 URL-safe Base64로 인코딩됨)
+    header_json = base64.urlsafe_b64decode(header_b64 + "==").decode('utf-8')
+    payload_json = base64.urlsafe_b64decode(payload_b64 + "==").decode('utf-8')
+    
+    # 디코딩된 헤더와 페이로드를 JSON 객체로 변환
+    header = json.loads(header_json)
+    payload = json.loads(payload_json)
+    
+    return header, payload, signature_b64
 
 # 로그인 페이지 제공 
 @app.get("/login")
@@ -147,35 +168,67 @@ async def login(username: str = Form(...), password: str = Form(...), db: Sessio
     db_user = authenticate_user(db, username, password)
     if not db_user:
         raise HTTPException(status_code=401, detail="Incorrect username or password")
+    
+    print()
+    # db_user를 JSON 형식으로 출력
+    print("db_user:", json.dumps(db_user.__dict__, default=str))  # __dict__로 속성 가져오기
+    print()
 
+    # 토큰 생성
     access_token = create_access_token(
         data={"sub": db_user.username}, expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
 
+    header, payload, signature = decode_jwt(access_token)
+    # 출력
+    print()
+    print("Header:", json.dumps(header, indent=4))
+    print("Payload:", json.dumps(payload, indent=4))
+    print("Signature:", signature)
+    print()
+    
     # 로그인 성공 시 /list로 리다이렉트 (username을 동적으로 포함)
-    response = RedirectResponse(url=f"/list/{username}", status_code=303)
-    response.set_cookie(key="access_token", value=access_token)
+    response = RedirectResponse(url="/list", status_code=303)
+    # 로그인 성공 후 사용자가 이동할 경로, 303 see other는 클라이언트가 서버에서 제공한 url로 이동하도록 지시하는 역할할
+    response.set_cookie(key="access_token", value=access_token, httponly=True) # 보안 강화용 
     return response
 
 
+
+# # 현재 로그인한 사용자의 정보를 가져오는 api
+# @app.get("/users/me", response_model=dict)
+# def read_users_me(current_user: User = Depends(get_current_user)):
+#     return {"username": current_user.username}
+
+
+
+
+
 @app.get("/logout")
-async def logout(response: RedirectResponse):
-    response.delete_cookie(key="access_token")  # 쿠키 삭제
-    return RedirectResponse(url="/list")  # 로그아웃 후 list 페이지로 리다이렉트
+async def logout(request: Request):
+    response = templates.TemplateResponse("list.html", {"request":request})
+    response.delete_cookie(key="access_token")
+    return response
 
+# JWT 디코딩 함수
+def decode_access_token(access_token: str) -> Optional[str]:
+    try:
+        payload = jwt.decode(access_token, key=SECRET_KEY, algorithms=ALGORITHM)
+        username = payload.get("sub")  # "sub" 필드에 username이 들어있다고 가정
+        return username
+    except JWTError:
+        return None  # 토큰이 잘못되었거나 만료된 경우
+# SECRET_KEY = "secretKey"
+# ALGORITHM = "HS256"
 
+@app.get("/list")
+async def list_page(request: Request):
+    # 쿠키에서 access_token을 확인
+    access_token = request.cookies.get("access_token")
+    if access_token:
+        # 토큰이 존재하면 디코딩하여 username을 얻을 수 있음
+        username = decode_access_token(access_token)
+    else:
+        username = None  # 토큰이 없으면 username은 None
 
-
-
-# 현재 로그인한 사용자의 정보를 가져오는 api
-@app.get("/users/me", response_model=dict)
-def read_users_me(current_user: User = Depends(get_current_user)):
-    return {"username": current_user.username}
-
-
-
-
-@app.get("/list/{username}", response_class=HTMLResponse)
-async def get_list(request: Request, username: str):
-    # HTML 템플릿 렌더링
     return templates.TemplateResponse("list.html", {"request": request, "username": username})

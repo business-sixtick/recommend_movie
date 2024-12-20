@@ -1,3 +1,6 @@
+uvicorn main:app --reload
+
+
 우분투 원격 접속 
 PS C:\Users\acy> ssh ahncho@192.168.0.26
 fastapi라는 가상환경 만들기
@@ -38,3 +41,12 @@ uvicorn main:app --reload
 
 모듈 설치 
 pip install passlib[bcrypt] python-jose pydantic sqlalchemy fastapi uvicorn jinja2 pymysql
+
+
+templateresponse와 redirectresponse의 차이
+TemplateResponse는 리다이렉트를 하지 않기 때문에 쿠키 삭제가 바로 반영됩니다
+직접적인 html 페이지 응답을 반환
+클라이언트에 전달되기 전에 쿠키 삭제가 바로 적용
+
+RedirectResponse는 리다이렉트가 발생하기 전에 쿠키를 삭제해야 쿠키가 제대로 삭제되므로
+delete_cookie() 호출 후 리다이렉트가 발생해야 합니다

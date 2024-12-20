@@ -9,32 +9,39 @@
 
 <div class="p-5 mb-5 text-center</> bg-light">
   <h1 class="mb-3">My Blog</h1>
-  <h1 class="mb-3">{{ username }}님, 블로그에 오신 것을 환영합니다</h1>
+  <h1 class="mb-3">
+    {% if username %}
+        {{ username }}님, 블로그에 오신 것을 환영합니다
+    {% else %}
+        로그인을 해주세요
+    {% endif %}
+</h1>
 </div>
 
-<div class="container">
-<!--  글 등록은 상대 경로, 로그아웃은 절대 경로-->
-<!--  <button type="button" id="create-btn" th:onclick="|location.href='@{/new-article}'|" class="btn btn-secondary btn-sm mb-3">글 등록</button>-->
-  <!-- <button type="button" id="create-btn" onclick="location.href='/new-article'" class="btn btn-secondary">글 등록</button> -->
-  <button type="button" class="btn btn-secondary" onclick="location.href='/logout'">로그아웃</button>
+<div>
+    {% if username %}
+        <button type="button" class="btn btn-secondary" onclick="location.href='/logout'">로그아웃</button>
+    {% else %}
+    <!-- 로그인 버튼 (로그인하지 않은 경우) -->
+        <button type="button" class="btn btn-secondary" onclick="location.href='/login'">로그인</button>
+    {% endif %}
+</div>
 
-  <!-- <div class="row-6" th:each="item : ${articles}">
-    <div class="card">
-      <div class="card-header" th:text="${item.id}"></div>
-      <div class="card-body">
-        <h5 class="card-title" th:text="${item.title}"></h5>
-        <p class="card-text" th:text="${item.content}"></p>
-        <a th:href="@{/article/{id}(id=${item.id})}" class="btn btn-primary">보러가기</a>
-      </div>
+<!--모달 팝업-->
+<div class="modal">
+    <div class="modal_popup">
+        <h3>modal popup title</h3>
+        <p>this is modal</p>
+        <button type="button" class="close_btn">close</button>
     </div>
-  </div> -->
-
-  <br/>
-<!--  <button type="button" class="btn btn-secondary" onclick="location.href='/logout'">로그아웃</button>-->
 </div>
-
-
-<!-- <script src="/js/article.js"></script> -->
+<!--end 모달 팝업-->
+<main>
+    <section>
+        <h2>모달 팝업</h2>
+        <button type="button" class="modal_btn">클릭하면 모달팝업이 보여집니다</button>
+    </section>
+</main>
 
 </body>
 </html>
