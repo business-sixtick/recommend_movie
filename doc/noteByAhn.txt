@@ -49,3 +49,9 @@ root
 깃 설치
 sudo apt update
 sudo apt install git
+
+깃유저 네임이랑 이메일 설정정
+git config --global user.name "coconutkim_ubuntu"
+git config --global user.email "achaeyeon18@gmail.com"
+다 설정한 다음에 상태 확인
+git config --list
