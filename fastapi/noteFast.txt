@@ -1,0 +1,40 @@
+우분투 원격 접속 
+PS C:\Users\acy> ssh ahncho@192.168.0.26
+fastapi라는 가상환경 만들기
+python3 -m venv fastapi
+가상환경 실행
+source fastapi/bin/activate
+
+sudo apt update하려는데 막힐 때 >> 루트 권한이 없는 거임
+root@sixtick-sub2:~# usermod -aG sudo ahncho
+근데 위도 안 되면 아래처럼 수동 수정
+루트로 가서      su -
+visudo
+ahncho ALL=(ALL:ALL) ALL
+최종적으로 이 계정으로 돌아와서
+sudo whoami
+[sudo] ahncho 암호:
+root
+
+
+깃 설치
+sudo apt update
+sudo apt install git
+
+깃유저 네임이랑 이메일 설정정
+git config --global user.name "coconutkim_ubuntu"
+git config --global user.email "achaeyeon18@gmail.com"
+다 설정한 다음에 상태 확인
+git config --list
+
+
+fastapi 설치
+자습시에는 모든 선택적인 의존성 및 기능을 함께 설치하는 것을 추천합니다:
+pip install "fastapi[all]"
+코드를 실행하는 서버로 사용할 수 있는 uvicorn 또한 포함하고 있습니다.
+
+라이브 서버 실행
+uvicorn main:app --reload
+
+모듈 설치 
+pip install passlib[bcrypt] python-jose pydantic sqlalchemy fastapi uvicorn jinja2 pymysql

@@ -25,33 +25,3 @@ method: 'PUT',
 인텔리제이 ultimate를 다시 이용할려면 
 1. 제어판에서 앱 제거
 2. C:\Users\acy>regedit 명령 프롬프트에서 다음을 작성하고 intellij 파일 제거
-
-
-우분투 원격 접속속
-PS C:\Users\acy> ssh ahncho@192.168.0.26
-fastapi라는 가상환경 만들기
-python3 -m venv fastapi
-가상환경 실행
-source fastpi/bin/activate
-
-sudo apt update하려는데 막힐 때 >> 루트 권한이 없는 거임
-root@sixtick-sub2:~# usermod -aG sudo ahncho
-근데 위도 안 되면 아래처럼 수동 수정
-루트로 가서      su -
-visudo
-ahncho ALL=(ALL:ALL) ALL
-최종적으로 이 계정으로 돌아와서
-sudo whoami
-[sudo] ahncho 암호:
-root
-
-
-깃 설치
-sudo apt update
-sudo apt install git
-
-깃유저 네임이랑 이메일 설정정
-git config --global user.name "coconutkim_ubuntu"
-git config --global user.email "achaeyeon18@gmail.com"
-다 설정한 다음에 상태 확인
-git config --list
