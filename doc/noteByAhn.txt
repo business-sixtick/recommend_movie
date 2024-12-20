@@ -25,3 +25,11 @@ method: 'PUT',
 인텔리제이 ultimate를 다시 이용할려면 
 1. 제어판에서 앱 제거
 2. C:\Users\acy>regedit 명령 프롬프트에서 다음을 작성하고 intellij 파일 제거
+
+
+우분투 원격 접속속
+PS C:\Users\acy> ssh ahncho@192.168.0.26
+fastapi라는 가상환경 만들기
+python3 -m venv fastapi
+가상환경 실행
+source fastpi/bin/activate
