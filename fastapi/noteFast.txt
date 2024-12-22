@@ -1,3 +1,6 @@
+fastapi 브라우저에서 켜기기
+cd fastapi/source/recommend_movie/fastapi
+source fastapi/bin/activate
 uvicorn main:app --reload
 
 

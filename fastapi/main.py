@@ -116,10 +116,10 @@ templates = Jinja2Templates(directory="templates")
 
 
 
-# 회원 가입 페이지 제공
-@app.get("/register", response_class=HTMLResponse)
-def register_page(request: Request):
-    return templates.TemplateResponse("register.html", {"request": request})
+# # 회원 가입 페이지 제공
+# @app.get("/register", response_class=HTMLResponse)
+# def register_page(request: Request):
+#     return templates.TemplateResponse("register.html", {"request": request})
 
 # 회원 가입을 처리하는 api
 @app.post("/register", response_model=dict)
@@ -138,7 +138,12 @@ def register(username: str = Form(...), password: str = Form(...), db: Session =
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return RedirectResponse(url="/login", status_code=303)
+    
+    # 모달창으로 회원가입을 처리하므로 리다이렉트 경로는 없앤다 
+    # return RedirectResponse(url="/login", status_code=303)
+
+    # 회원 가입 후 리다이렉트 코드 제거, 그 대신 단순히 응답을 반환
+    return {"message": "User successfully registered"}
 
 
 
@@ -158,10 +163,10 @@ def decode_jwt(token: str):
     
     return header, payload, signature_b64
 
-# 로그인 페이지 제공 
-@app.get("/login")
-async def get_login(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+# # 로그인 페이지 제공 
+# @app.get("/login")
+# async def get_login(request: Request):
+#     return templates.TemplateResponse("login.html", {"request": request})
 
 @app.post("/login")
 async def login(username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
@@ -218,8 +223,11 @@ def decode_access_token(access_token: str) -> Optional[str]:
         return username
     except JWTError:
         return None  # 토큰이 잘못되었거나 만료된 경우
+    
 # SECRET_KEY = "secretKey"
 # ALGORITHM = "HS256"
+
+
 
 @app.get("/list")
 async def list_page(request: Request):
