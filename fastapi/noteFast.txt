@@ -1,7 +1,9 @@
 fastapi 브라우저에서 켜기기
-cd fastapi/source/recommend_movie/fastapi
+cd ~
 source fastapi/bin/activate
+cd fastapi/source/recommend_movie/fastapi
 uvicorn main:app --reload
+
 
 
 우분투 원격 접속 
@@ -23,6 +25,7 @@ sudo whoami
 root
 
 
+
 깃 설치
 sudo apt update
 sudo apt install git
@@ -32,6 +35,7 @@ git config --global user.name "coconutkim_ubuntu"
 git config --global user.email "achaeyeon18@gmail.com"
 다 설정한 다음에 상태 확인
 git config --list
+
 
 
 fastapi 설치
@@ -44,6 +48,8 @@ uvicorn main:app --reload
 
 모듈 설치 
 pip install passlib[bcrypt] python-jose pydantic sqlalchemy fastapi uvicorn jinja2 pymysql
+pip3 install jupyter notebook jupyterlab ipykernel
+
 
 
 templateresponse와 redirectresponse의 차이
@@ -53,3 +59,45 @@ TemplateResponse는 리다이렉트를 하지 않기 때문에 쿠키 삭제가 
 
 RedirectResponse는 리다이렉트가 발생하기 전에 쿠키를 삭제해야 쿠키가 제대로 삭제되므로
 delete_cookie() 호출 후 리다이렉트가 발생해야 합니다
+
+
+
+cors 에러
+- 개념
+cross-origin resource sharing, 교차-출처 리소스 공유
+다른 출처이기 때문에 발생생하는 에러
+동일한 출처의 리소스에만 접근하도록 제한하는 정책인 동일 출처 정책
+출처라는건 프로토콜, 호스트명, 포트가 같다
+보안상의 문제 때문에 발생
+
+- 해결책
+url 앞에 프로시 서버 url을 붙인다 >> Access-Control-Allow-Origin : * 를 설정해 주면 된다
+axois({
+  method:"GET",
+  url:`https://cors-anywhere/herokuapp.com/{URL},
+  header:{
+	'APIKey':'....'
+  }
+})
+근데 api 키가 필요해서 번거롭다
+이외에 등등등 뭔 방법이 많다
+
+- 나의 해결법
+클라이언트에서 외부 api가 아닌 서버에서 서버로 요청함
+
+왜 cors 정책의 영향을 받지 않는가?
+클라이언트 측에서 발생하는 요청에만 적용된다
+서버는 이 정책 무시함
+
+클라이언트 → FastAPI 서버 → 외부 API 흐름
+
+
+
+parse 파싱하다
+주어진 데이터를 해석하고 분석하여 원하는 형식 또는 구조로 변환하는 작업
+데이터 처리 과정에서 일어나는 변환 작업을 지칭하는 범용적인 용어
+
+
+
+- 영화진흥위원회 장르 리스트 
+드라마,코미디,액션,멜로/로맨스,스릴러,미스터리,공포(호러),어드벤처,범죄,가족,판타지,SF,서부극(웨스턴),사극,애니메이션,다큐멘터리,전쟁,뮤지컬,성인물(에로),공연,기타

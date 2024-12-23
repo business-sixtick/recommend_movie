@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, Request, Form, Cookie
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, JSONResponse
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from pydantic import BaseModel
@@ -15,6 +15,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from typing import Optional
 import json
 import base64
+import httpx
 
 # Database configuration
 # DATABASE_URL = "mysql+pymysql://username:password@localhost/db_name"
@@ -194,7 +195,7 @@ async def login(username: str = Form(...), password: str = Form(...), db: Sessio
     
     # 로그인 성공 시 /list로 리다이렉트 (username을 동적으로 포함)
     response = RedirectResponse(url="/list", status_code=303)
-    # 로그인 성공 후 사용자가 이동할 경로, 303 see other는 클라이언트가 서버에서 제공한 url로 이동하도록 지시하는 역할할
+    # 로그인 성공 후 사용자가 이동할 경로, 303 see other는 클라이언트가 서버에서 제공한 url로 이동하도록 지시하는 역할 
     response.set_cookie(key="access_token", value=access_token, httponly=True) # 보안 강화용 
     return response
 
@@ -240,3 +241,22 @@ async def list_page(request: Request):
         username = None  # 토큰이 없으면 username은 None
 
     return templates.TemplateResponse("list.html", {"request": request, "username": username})
+
+
+
+
+# 외부 API 요청을 처리하는 엔드포인트
+@app.get("/search")
+async def search(query: str):
+    # 외부 API 요청 URL (예시)
+    external_url = f"http://sixtick.duckdns.org:19821/llm?role=사용자가 질문한 내용과 관련된 영화 제목을 콤마로 구분해서 제목만 보여줘&query={query}"
+
+    # httpx를 사용하여 외부 API로 요청
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(external_url)
+            return JSONResponse(content={"result": response.text})  # 결과를 클라이언트에 반환
+        except httpx.HTTPStatusError as http_error:
+            return JSONResponse(content={"error": f"HTTP Error: {http_error}"}, status_code=400)
+        except httpx.RequestError as request_error:
+            return JSONResponse(content={"error": f"Request Error: {request_error}"}, status_code=400)
