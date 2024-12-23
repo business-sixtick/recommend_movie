@@ -101,3 +101,21 @@ parse 파싱하다
 
 - 영화진흥위원회 장르 리스트 
 드라마,코미디,액션,멜로/로맨스,스릴러,미스터리,공포(호러),어드벤처,범죄,가족,판타지,SF,서부극(웨스턴),사극,애니메이션,다큐멘터리,전쟁,뮤지컬,성인물(에로),공연,기타
+
+
+
+우분투, vscode, 주피터 노트북
+주피터 노트북에서 커널 선택
+
+가상환경을 주피터 커널로 등록 
+python -m ipykernel install --user --name fastapi --display-name "Python (fastapi)"
+
+등록했는데 안 뜬다 >> 권한 주기
+json 파일에 대한 읽기, 쓰기 권한 주기
+sudo chmod 644 /home/ahncho/.local/share/jupyter/kernels/fastapi/kernel.json
+fastapi 디렉토리와 그 안의 모든 파일에 대해 읽기/실행 권한을 부여
+sudo chmod -R 755 /home/ahncho/.local/share/jupyter/kernels/fastapi
+소유권 수정 
+sudo chown -R ahncho:ahncho /home/ahncho/.local/share/jupyter/kernels/fastapi
+
+이렇게 하고 나서 커널 선택 창으로 들어가면 되는 듯듯
