@@ -27,7 +27,7 @@
         </h1>
     </div>
 
-    <form id="searchForm">
+    <!-- <form id="searchForm">
         <input class="form-control" id="searchCorner" placeholder="검색어를 입력하세요">
         <div class="input-group-prepend" id="button-addon4">
             <button class="btn btn-outline-secondary btn-search" type="button" onclick="performSearch()">
@@ -39,20 +39,7 @@
         </div>
     </form>
     <div id="urlDisplay" style="margin-top: 10px;"></div>
-    <div id="result"></div>
-
-
-
-    <div>
-        <input class="form-control" id="searchTitle" placeholder="제목">
-        <input class="form-control" id="searchActor" placeholder="배우">
-        <input class="form-control" id="searchDirector" placeholder="감독">
-        <input class="form-control" id="searchGenre" placeholder="장르">
-        <input class="form-control" id="searchRelease" placeholder="개봉일자">
-        <input class="form-control" id="searchNationality" placeholder="국적">
-        <button class="btn btn-outline-secondary btn-search" type="button">Search</button>
-    </div>
-
+    <div id="result"></div> -->
 
 
     <div>
@@ -66,6 +53,28 @@
 
     <div class="container text-center mt-5">
         <button id="openModal" class="btn btn-primary">Click here to Login</button>
+    </div>
+
+
+    <div>
+        <!-- <input class="form-control" id="searchTitle" placeholder="제목"> -->
+        <h1>영화 검색</h1>
+        <div class="search-container">
+            <input class="form-control" type="text" id="search-query" placeholder="영화 제목을 입력하세요">
+            <button class="btn btn-secondary btn-search" onclick="searchMovies()">검색</button>
+        </div>
+
+        <div id="loading" class="loading" style="display:none;">검색 중...</div>
+        <div class="movie-list" id="movie-list"></div>
+
+
+        <!--         
+        <input class="form-control" id="searchActor" placeholder="배우">
+        <input class="form-control" id="searchDirector" placeholder="감독">
+        <input class="form-control" id="searchGenre" placeholder="장르">
+        <input class="form-control" id="searchRelease" placeholder="개봉일자">
+        <input class="form-control" id="searchNationality" placeholder="국적">
+        <button class="btn btn-outline-secondary btn-search" type="button">Search</button> -->
     </div>
 
     <div id="modalBackground" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
@@ -116,39 +125,134 @@
 
 
 
+<!-- 모달창 -->
+<div id="movieDetail" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="movieDetailLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <!-- 모달 헤더 -->
+        <div class="modal-header">
+          <h5 class="modal-title" id="movieDetailLabel">영화 상세 정보</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <!-- 모달 본문 -->
+        <div class="modal-body">
+          여기에 영화 관련 정보가 표시됩니다.
+        </div>
+        <!-- 모달 푸터 -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
     <script>
-        function performSearch() {
-            const input = document.getElementById('searchCorner').value;
-            const url = `http://127.0.0.1:8000/search?query=${encodeURIComponent(input)}`;  // FastAPI 서버로 요청
+        //영화 목록 
+        async function searchMovies() {
+            const query = document.getElementById("search-query").value;
+            const loadingElement = document.getElementById("loading");
+            const movieListElement = document.getElementById("movie-list");
 
-            // 검색한 URL을 화면에 표시
-            // document.getElementById('urlDisplay').innerText = `검색한 URL: ${url}`;
+            // 검색 중 메시지 표시
+            loadingElement.style.display = 'block';
+            movieListElement.innerHTML = ''; // 이전 결과 초기화
 
-            // AJAX 요청을 보내 FastAPI 서버에서 처리하도록 함
-            const xhr = new XMLHttpRequest();
-            xhr.open("GET", url, true);
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == 4 && xhr.status == 200) { // 응답 상태가 200일 때 실행
-                    // readyState는 XMLHttpRequest 객체의 상태를 나타내며, 0에서 4까지의 값을 가질 수 있습니다
-                    // 200같은 상태 
-                    const response = JSON.parse(xhr.responseText); // json 형태로 파싱 
-                    if (response.result) {
-                        document.getElementById('result').innerText = response.result;  // 외부 API의 응답을 출력
-                    } else {
-                        document.getElementById('result').innerText = response.error || '알 수 없는 오류';
-                    }
-                } else if (xhr.readyState == 4) {
-                    document.getElementById('result').innerText = '요청 중 오류가 발생했습니다';
+            if (query.trim() === '') {
+                loadingElement.style.display = 'none';
+                alert('영화 제목을 입력하세요');
+                return;
+            }
+
+            try {
+                // 이미 정의된 API URL과 API 키를 사용
+                const params = new URLSearchParams({
+                    movieNm: query        // 사용자가 입력한 영화 제목
+                });
+
+                // API 요청 보내기
+                const response = await fetch(`http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieList.json?${params.toString()}`);
+
+                if (!response.ok) {
+                    throw new Error('API 요청이 실패했습니다');
                 }
-            };
-            xhr.send();
+
+                const data = await response.json();
+
+                // 영화 목록이 없으면 메시지 출력
+                if (!data.movieListResult || !data.movieListResult.movieList || data.movieListResult.movieList.length === 0) {
+                    movieListElement.innerHTML = '<p>검색 결과가 없습니다.</p>';
+                } else {
+                    // 영화 목록 출력
+                    data.movieListResult.movieList.forEach(movie => {
+                        const movieElement = document.createElement('div');
+                        movieElement.classList.add('movie-item');
+                        movieElement.innerHTML = `
+                    <h3>${movie.movieNm} (${movie.prdtYear})</h3>
+                    <p><strong>영화 코드:</strong> ${movie.movieCd}</p>
+                    <p><strong>영어 제목:</strong> ${movie.movieNmEn}</p>
+                    <p><strong>개봉일:</strong> ${movie.openDt}</p>
+                    <p><strong>영화 유형:</strong> ${movie.typeNm}</p>
+                    <p><strong>제작 상태:</strong> ${movie.prdtStatNm}</p>
+                    <p><strong>제작 국가:</strong> ${movie.nationAlt}</p>
+                    <p><strong>장르:</strong> ${movie.genreAlt}</p>
+                    <p><strong>대표 제작국가:</strong> ${movie.repNationNm}</p>
+                    <p><strong>대표 장르:</strong> ${movie.repGenreNm}</p>
+                    <p><strong>감독:</strong> ${movie.directors}</p>
+                    <p><strong>출연 배우:</strong> ${movie.peopleNm}</p>
+                    <p><strong>제작사:</strong> ${movie.companyNm}</p>
+                `;
+                        movieListElement.appendChild(movieElement);
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching movie data:', error);
+                movieListElement.innerHTML = '<p>데이터를 불러오는 데 오류가 발생했습니다.</p>';
+            } finally {
+                // 검색 중 메시지 숨기기
+                loadingElement.style.display = 'none';
+            }
         }
 
-        function clearInput() {
-            document.getElementById('searchCorner').value = '';
-            document.getElementById('result').innerText = '';
-        }
+
+
+
+        // llm 모델 테스트 
+        // function performSearch() {
+        //     const input = document.getElementById('searchCorner').value;
+        //     const url = `http://127.0.0.1:8000/search?query=${encodeURIComponent(input)}`;  // FastAPI 서버로 요청
+
+        //     // 검색한 URL을 화면에 표시
+        //     // document.getElementById('urlDisplay').innerText = `검색한 URL: ${url}`;
+
+        //     // AJAX 요청을 보내 FastAPI 서버에서 처리하도록 함
+        //     const xhr = new XMLHttpRequest();
+        //     xhr.open("GET", url, true);
+        //     xhr.onreadystatechange = function () {
+        //         if (xhr.readyState == 4 && xhr.status == 200) { // 응답 상태가 200일 때 실행
+        //             // readyState는 XMLHttpRequest 객체의 상태를 나타내며, 0에서 4까지의 값을 가질 수 있습니다
+        //             // 200같은 상태 
+        //             const response = JSON.parse(xhr.responseText); // json 형태로 파싱 
+        //             if (response.result) {
+        //                 document.getElementById('result').innerText = response.result;  // 외부 API의 응답을 출력
+        //             } else {
+        //                 document.getElementById('result').innerText = response.error || '알 수 없는 오류';
+        //             }
+        //         } else if (xhr.readyState == 4) {
+        //             document.getElementById('result').innerText = '요청 중 오류가 발생했습니다';
+        //         }
+        //     };
+        //     xhr.send();
+        // }
+
+        // function clearInput() {
+        //     document.getElementById('searchCorner').value = '';
+        //     document.getElementById('result').innerText = '';
+        // }
+
+
+
 
         // Open Modal
         document.getElementById('openModal').addEventListener('click', () => {
@@ -185,7 +289,7 @@
 
 
 
-
+        // 로그인창 
         $(document).ready(function () {
             $('#loginForm').on('submit', function (event) {
                 event.preventDefault();
@@ -201,7 +305,7 @@
                         $('.dynamic-content').html(response.updatedHtml);
 
                         // 로그인 성공 메시지 표시 (옵션)
-                        alert('로그인에 성공했습니다.');
+                        // alert('로그인에 성공했습니다.');
 
                         // 로그인 폼 숨기기 및 모달 닫기
                         $('#loginForm').hide();
@@ -217,12 +321,13 @@
 
 
 
+        // 로그아웃 버튼 누르기 
         $('#logoutButton').on('click', function () {
             $.ajax({
                 url: '/logout', // 로그아웃 엔드포인트
                 method: 'GET',  // GET 요청
                 success: function (response) {
-                    alert("로그아웃 되었습니다."); // 성공 메시지
+                    // alert("로그아웃 되었습니다."); // 성공 메시지
                 },
                 error: function () {
                     alert("로그아웃에 실패했습니다."); // 오류 메시지
@@ -233,5 +338,63 @@
             return false;
         });
 
+
+
+
+
+        document.getElementById('registerForm').addEventListener('submit', function (event) {
+        event.preventDefault(); // 폼 제출 기본 동작을 방지
+
+        // 폼 데이터 추출
+        const username = document.getElementById('registerUsername').value;
+        const password = document.getElementById('registerPassword').value;
+
+        // API 요청
+        fetch('/register', {
+            method: 'POST',
+            body: new URLSearchParams({
+                username: username,
+                password: password,
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                // alert(data.message); // 사용자에게 성공 메시지 표시
+                showLogin();
+            } else {
+                alert('An error occurred: ' + data.detail); // 에러 처리
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An unexpected error occurred.');
+        });
+    });
+
+
+
+    $(document).ready(function() {
+  // $(document)에서 직접 이벤트 위임
+  $(document).on('click', '.movie-item h3', function() {
+    var movieTitle = $(this).text();  // 클릭한 영화 제목
+    $('#movieDetail .modal-body').text('선택한 영화 제목: ' + movieTitle);  // 모달 본문에 영화 제목 표시
+    $('#movieDetail').modal('show');  // 모달 열기
+  });
+});
+
+
+
+// 닫기 버튼 클릭 시 모달 닫기
+document.querySelector('.close').addEventListener('click', function() {
+  document.getElementById('movieDetail').style.display = 'none';
+});
+
+// 모달 외부 클릭 시 모달 닫기
+window.addEventListener('click', function(event) {
+  if (event.target === document.getElementById('movieDetail')) {
+    document.getElementById('movieDetail').style.display = 'none';
+  }
+});
 
     </script>

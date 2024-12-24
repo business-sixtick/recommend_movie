@@ -51,3 +51,7 @@ java -version
 
 - 로직
 프로그램이 특정 작업을 수행하기 위해 따르는 논리적 절차나 규칙
+
+
+application 클래스에 org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration.class를  exclude에 포함하면
+데이터베이스와 연결하는데 문제가 생길 수 있다

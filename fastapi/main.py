@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, Request, Form, Cookie
+from fastapi import FastAPI, Depends, HTTPException, Request, Form, Cookie, Query
 from fastapi.responses import RedirectResponse, JSONResponse
 from passlib.context import CryptContext
 from jose import JWTError, jwt
@@ -12,10 +12,15 @@ from fastapi.templating import Jinja2Templates
 from starlette.requests import Request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from typing import Optional
+from typing import Optional, Dict
 import json
 import base64
 import httpx
+import requests
+from bs4 import BeautifulSoup
+
+
+
 
 # Database configuration
 # DATABASE_URL = "mysql+pymysql://username:password@localhost/db_name"
@@ -245,18 +250,19 @@ async def list_page(request: Request):
 
 
 
-# 외부 API 요청을 처리하는 엔드포인트
-@app.get("/search")
-async def search(query: str):
-    # 외부 API 요청 URL (예시)
-    external_url = f"http://sixtick.duckdns.org:19821/llm?role=사용자가 질문한 내용과 관련된 영화 제목을 콤마로 구분해서 제목만 보여줘&query={query}"
+# # 외부 API 요청을 처리하는 엔드포인트
+# @app.get("/search")
+# async def search(query: str):
+#     # 외부 API 요청 URL (예시)
+#     external_url = f"http://sixtick.duckdns.org:19821/llm?role=사용자가 질문한 내용과 관련된 영화 제목을 콤마로 구분해서 제목만 보여줘&query={query}"
 
-    # httpx를 사용하여 외부 API로 요청
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.get(external_url)
-            return JSONResponse(content={"result": response.text})  # 결과를 클라이언트에 반환
-        except httpx.HTTPStatusError as http_error:
-            return JSONResponse(content={"error": f"HTTP Error: {http_error}"}, status_code=400)
-        except httpx.RequestError as request_error:
-            return JSONResponse(content={"error": f"Request Error: {request_error}"}, status_code=400)
+#     # httpx를 사용하여 외부 API로 요청
+#     async with httpx.AsyncClient() as client:
+#         try:
+#             response = await client.get(external_url)
+#             return JSONResponse(content={"result": response.text})  # 결과를 클라이언트에 반환
+#         except httpx.HTTPStatusError as http_error:
+#             return JSONResponse(content={"error": f"HTTP Error: {http_error}"}, status_code=400)
+#         except httpx.RequestError as request_error:
+#             return JSONResponse(content={"error": f"Request Error: {request_error}"}, status_code=400)
+        
