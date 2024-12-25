@@ -30,7 +30,9 @@ pip install sqlalchemy            ## orm
 pip install requests            ## requests, url 관련
 pip install beautifulsoup4            ## bs4 , 웹크롤링
 pip install pymysql            ## pymysql, 마이에스큐엘 커넥터
-pip install python-dotenv     ## .env 사용용
+pip install python-dotenv     ## .env 사용
+pip install cryptography      ## caching_sha2_password 마이에스큐엘  인증방식
+pip install bcrypt             ## passlib
 
 
 - 도커 (기본적을 윈도우에서는 wsl 을 사용해서 리눅스 기반으로 도커를 서비스한다)
@@ -38,3 +40,4 @@ https://www.docker.com/
 $ docker run --name mysql_movie -e MYSQL_ROOT_PASSWORD=dkswh18 -d -p 3306:3306 mysql:latest
 $ docker exec -it mysql_movie bash
 # mysql -u root -p         (root dkswh18)
+CREATE DATABASE movie_fastapi;

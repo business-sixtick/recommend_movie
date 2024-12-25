@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, Request, Form, Cookie, Query
-from fastapi.responses import RedirectResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse, JSONResponse, FileResponse         
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from pydantic import BaseModel
@@ -127,7 +128,8 @@ def get_current_user(token: str, db: Session = Depends(get_db)):
 
 
 
-
+# 정적 파일 디렉토리 설정 (HTML, CSS, JS, 이미지 등)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # 템플릿 디렉토리 설정
 templates = Jinja2Templates(directory="templates")
@@ -260,8 +262,10 @@ async def list_page(request: Request):
 
     return templates.TemplateResponse("list.html", {"request": request, "username": username})
 
-
-
+@app.get("/")
+async def main_page():
+    # 단순히 static 디렉토리 안에 있는 index.html을 반환
+    return FileResponse("static/index.html")
 
 # # 외부 API 요청을 처리하는 엔드포인트
 # @app.get("/search")
