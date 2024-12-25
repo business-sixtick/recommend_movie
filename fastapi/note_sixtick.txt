@@ -15,7 +15,7 @@ chcp  ## 확인
 깃 클론 이후  
 
 cd /source
-python -m venv movie
+python -m venv movie              ## 가상환경 생성성
 .\movie\Scripts\activate
 cd .\recommend_movie\fastapi
 pip install -r requirements.txt            ## 모두 구성했을때 실행... 아 윈도우에서 자꾸 cp949 디코딩 에러뜨는거 보니 인코딩을 cp949해줘야 하나봐봐
@@ -30,7 +30,11 @@ pip install sqlalchemy            ## orm
 pip install requests            ## requests, url 관련
 pip install beautifulsoup4            ## bs4 , 웹크롤링
 pip install pymysql            ## pymysql, 마이에스큐엘 커넥터
+pip install python-dotenv     ## .env 사용용
 
 
 - 도커 (기본적을 윈도우에서는 wsl 을 사용해서 리눅스 기반으로 도커를 서비스한다)
 https://www.docker.com/
+$ docker run --name mysql_movie -e MYSQL_ROOT_PASSWORD=dkswh18 -d -p 3306:3306 mysql:latest
+$ docker exec -it mysql_movie bash
+# mysql -u root -p         (root dkswh18)

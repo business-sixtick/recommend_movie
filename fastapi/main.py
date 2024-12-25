@@ -19,12 +19,25 @@ import httpx
 import requests
 from bs4 import BeautifulSoup
 
+# .env 파일에서 환경 변수 로드하기
+from dotenv import load_dotenv
+import os
 
+# .env 파일을 로드합니다.
+load_dotenv()
 
+# 환경 변수 사용하기
+ID = os.getenv('ID')
+PASS = os.getenv('PASS')
+HOST = os.getenv('HOST')
+PORT = os.getenv('PORT')
 
 # Database configuration
 # DATABASE_URL = "mysql+pymysql://username:password@localhost/db_name"
 DATABASE_URL = "mysql+pymysql://ahncho:dkswh18@192.168.0.26:3306/movie_fastapi"
+if ID:
+    DATABASE_URL = f"mysql+pymysql://{ID}:{PASS}@{HOST}:{PORT}/movie_fastapi"
+print(f'DATABASE_URL : {DATABASE_URL}' )
 # 여기서 붙는 pymysql은 데이터베이스 드라이버: 이건 주로 간단한 개발 환경에 사용한다
 # 공식 드라이버는 mysql-connector
 
