@@ -264,6 +264,7 @@ async def list_page(request: Request):
 
 @app.get("/")
 async def main_page():
+    print(f'main_page {datetime.now()}')
     # 단순히 static 디렉토리 안에 있는 index.html을 반환
     return FileResponse("static/index.html")
 
