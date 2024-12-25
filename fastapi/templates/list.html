@@ -137,9 +137,7 @@
           </button>
         </div>
         <!-- 모달 본문 -->
-        <div class="modal-body">
-          여기에 영화 관련 정보가 표시됩니다.
-        </div>
+        <div class="modal-body"></div>
         <!-- 모달 푸터 -->
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
@@ -148,113 +146,10 @@
     </div>
   </div>
 
+
+
     <script>
-        //영화 목록 
-        async function searchMovies() {
-            const query = document.getElementById("search-query").value;
-            const loadingElement = document.getElementById("loading");
-            const movieListElement = document.getElementById("movie-list");
-
-            // 검색 중 메시지 표시
-            loadingElement.style.display = 'block';
-            movieListElement.innerHTML = ''; // 이전 결과 초기화
-
-            if (query.trim() === '') {
-                loadingElement.style.display = 'none';
-                alert('영화 제목을 입력하세요');
-                return;
-            }
-
-            try {
-                // 이미 정의된 API URL과 API 키를 사용
-                const params = new URLSearchParams({
-                    movieNm: query        // 사용자가 입력한 영화 제목
-                });
-
-                // API 요청 보내기
-                const response = await fetch(`http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieList.json?${params.toString()}`);
-
-                if (!response.ok) {
-                    throw new Error('API 요청이 실패했습니다');
-                }
-
-                const data = await response.json();
-
-                // 영화 목록이 없으면 메시지 출력
-                if (!data.movieListResult || !data.movieListResult.movieList || data.movieListResult.movieList.length === 0) {
-                    movieListElement.innerHTML = '<p>검색 결과가 없습니다.</p>';
-                } else {
-                    // 영화 목록 출력
-                    data.movieListResult.movieList.forEach(movie => {
-                        const movieElement = document.createElement('div');
-                        movieElement.classList.add('movie-item');
-                        movieElement.innerHTML = `
-                    <h3>${movie.movieNm} (${movie.prdtYear})</h3>
-                    <p><strong>영화 코드:</strong> ${movie.movieCd}</p>
-                    <p><strong>영어 제목:</strong> ${movie.movieNmEn}</p>
-                    <p><strong>개봉일:</strong> ${movie.openDt}</p>
-                    <p><strong>영화 유형:</strong> ${movie.typeNm}</p>
-                    <p><strong>제작 상태:</strong> ${movie.prdtStatNm}</p>
-                    <p><strong>제작 국가:</strong> ${movie.nationAlt}</p>
-                    <p><strong>장르:</strong> ${movie.genreAlt}</p>
-                    <p><strong>대표 제작국가:</strong> ${movie.repNationNm}</p>
-                    <p><strong>대표 장르:</strong> ${movie.repGenreNm}</p>
-                    <p><strong>감독:</strong> ${movie.directors}</p>
-                    <p><strong>출연 배우:</strong> ${movie.peopleNm}</p>
-                    <p><strong>제작사:</strong> ${movie.companyNm}</p>
-                `;
-                        movieListElement.appendChild(movieElement);
-                    });
-                }
-            } catch (error) {
-                console.error('Error fetching movie data:', error);
-                movieListElement.innerHTML = '<p>데이터를 불러오는 데 오류가 발생했습니다.</p>';
-            } finally {
-                // 검색 중 메시지 숨기기
-                loadingElement.style.display = 'none';
-            }
-        }
-
-
-
-
-        // llm 모델 테스트 
-        // function performSearch() {
-        //     const input = document.getElementById('searchCorner').value;
-        //     const url = `http://127.0.0.1:8000/search?query=${encodeURIComponent(input)}`;  // FastAPI 서버로 요청
-
-        //     // 검색한 URL을 화면에 표시
-        //     // document.getElementById('urlDisplay').innerText = `검색한 URL: ${url}`;
-
-        //     // AJAX 요청을 보내 FastAPI 서버에서 처리하도록 함
-        //     const xhr = new XMLHttpRequest();
-        //     xhr.open("GET", url, true);
-        //     xhr.onreadystatechange = function () {
-        //         if (xhr.readyState == 4 && xhr.status == 200) { // 응답 상태가 200일 때 실행
-        //             // readyState는 XMLHttpRequest 객체의 상태를 나타내며, 0에서 4까지의 값을 가질 수 있습니다
-        //             // 200같은 상태 
-        //             const response = JSON.parse(xhr.responseText); // json 형태로 파싱 
-        //             if (response.result) {
-        //                 document.getElementById('result').innerText = response.result;  // 외부 API의 응답을 출력
-        //             } else {
-        //                 document.getElementById('result').innerText = response.error || '알 수 없는 오류';
-        //             }
-        //         } else if (xhr.readyState == 4) {
-        //             document.getElementById('result').innerText = '요청 중 오류가 발생했습니다';
-        //         }
-        //     };
-        //     xhr.send();
-        // }
-
-        // function clearInput() {
-        //     document.getElementById('searchCorner').value = '';
-        //     document.getElementById('result').innerText = '';
-        // }
-
-
-
-
-        // Open Modal
+         // Open Modal
         document.getElementById('openModal').addEventListener('click', () => {
             $('#modalBackground').modal('show');
             showLogin(); // Show login form by default
@@ -374,15 +269,130 @@
 
 
 
-    $(document).ready(function() {
-  // $(document)에서 직접 이벤트 위임
-  $(document).on('click', '.movie-item h3', function() {
-    var movieTitle = $(this).text();  // 클릭한 영화 제목
-    $('#movieDetail .modal-body').text('선택한 영화 제목: ' + movieTitle);  // 모달 본문에 영화 제목 표시
-    $('#movieDetail').modal('show');  // 모달 열기
-  });
-});
 
+            //영화 목록 
+            async function searchMovies() {
+                const query = document.getElementById("search-query").value;
+                const loadingElement = document.getElementById("loading");
+                const movieListElement = document.getElementById("movie-list");
+    
+                // 검색 중 메시지 표시
+                loadingElement.style.display = 'block';
+                movieListElement.innerHTML = ''; // 이전 결과 초기화
+    
+                if (query.trim() === '') {
+                    loadingElement.style.display = 'none';
+                    alert('영화 제목을 입력하세요');
+                    return;
+                }
+    
+                try {
+                    // 이미 정의된 API URL과 API 키를 사용
+                    const params = new URLSearchParams({
+                        movieNm: query,
+                    });
+    
+                    // API 요청 보내기
+                    const response = await fetch(`http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieList.json?${params.toString()}`);
+    
+                    if (!response.ok) {
+                        throw new Error('API 요청이 실패했습니다');
+                    }
+    
+                    const data = await response.json();
+    
+                    // 영화 목록이 없으면 메시지 출력
+                    if (!data.movieListResult || !data.movieListResult.movieList || data.movieListResult.movieList.length === 0) {
+                        movieListElement.innerHTML = '<p>검색 결과가 없습니다.</p>';
+                    } else {
+                        // 영화 목록 출력
+                        data.movieListResult.movieList.forEach(movie => {
+                            const movieElement = document.createElement('div');
+                            movieElement.classList.add('movie-item');
+                            movieElement.dataset.movieCd = movie.movieCd; // data-movieCd 추가
+                            movieElement.innerHTML = `
+                        <h3>${movie.movieNm} (${movie.prdtYear})</h3>
+                        <p><strong>영화 코드:</strong> ${movie.movieCd}</p>
+                        <p><strong>영어 제목:</strong> ${movie.movieNmEn}</p>
+                        <p><strong>개봉일:</strong> ${movie.openDt}</p>
+                        <p><strong>영화 유형:</strong> ${movie.typeNm}</p>
+                        <p><strong>제작 상태:</strong> ${movie.prdtStatNm}</p>
+                        <p><strong>제작 국가:</strong> ${movie.nationAlt}</p>
+                        <p><strong>장르:</strong> ${movie.genreAlt}</p>
+                        <p><strong>대표 제작국가:</strong> ${movie.repNationNm}</p>
+                        <p><strong>대표 장르:</strong> ${movie.repGenreNm}</p>
+                        <p><strong>감독:</strong> ${movie.directors}</p>
+                        <p><strong>출연 배우:</strong> ${movie.peopleNm}</p>
+                        <p><strong>제작사:</strong> ${movie.companyNm}</p>
+                    `;
+                            movieListElement.appendChild(movieElement);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error fetching movie data:', error);
+                    movieListElement.innerHTML = '<p>데이터를 불러오는 데 오류가 발생했습니다.</p>';
+                } finally {
+                    // 검색 중 메시지 숨기기
+                    loadingElement.style.display = 'none';
+                }
+            }    
+
+
+
+
+// 영화 제목을 클릭하면 상세 정보 모달창이 열림 
+$(document).ready(function() {
+    // $(document)에서 직접 이벤트 위임
+    $(document).on('click', '.movie-item h3', function() {
+        const movieCd = $(this).closest('.movie-item').data('movieCd');  // 가장 가까운 .movie-item 요소에서 movieCd 값 추출
+      const movieTitle = $(this).text();  // 클릭한 영화 제목
+  
+      // 영화 코드에 맞는 API URL 생성
+      const movieDetailUrl = `http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieInfo.json?key=&movieCd=${movieCd}`;  // 실제 API URL로 수정
+  
+      // API 호출
+      $.ajax({
+        url: movieDetailUrl,
+        method: 'GET',
+        dataType: 'json',
+        success: function(response) {
+          // API 응답에서 영화 정보 가져오기
+          const movie = response.movieInfoResult.movieInfo;  // API 응답에서 영화 정보
+  
+          // 영화 정보 모달에 표시하기
+          const modalContent = `
+            <p><strong>영화 코드:</strong> ${movie.movieCd}</p>
+            <p><strong>영화명(국문):</strong> ${movie.movieNm}</p>
+            <p><strong>영화명(영문):</strong> ${movie.movieNmEn}</p>
+            <p><strong>영화명(원문):</strong> ${movie.movieNmOg}</p>
+            <p><strong>제작연도:</strong> ${movie.prdtYear}</p>
+            <p><strong>상영시간:</strong> ${movie.showTm} 분</p>
+            <p><strong>개봉일:</strong> ${movie.openDt}</p>
+            <p><strong>제작상태:</strong> ${movie.prdtStatNm}</p>
+            <p><strong>영화유형:</strong> ${movie.typeNm}</p>
+            <p><strong>제작국가:</strong> ${movie.nations}</p>
+            <p><strong>장르:</strong> ${movie.genreNm}</p>
+            <p><strong>감독:</strong> ${movie.directors}</p>
+            <p><strong>배우:</strong> ${movie.actors}</p>
+            <p><strong>배역명:</strong> ${movie.cast}</p>
+            <p><strong>심의정보:</strong> ${movie.audits}</p>
+            <p><strong>심의번호:</strong> ${movie.auditNo}</p>
+          `;
+          // 사이트 가서 위에 정보 더 채워라 
+  
+          // 모달의 본문에 내용을 채우기
+          $('#movieDetail .modal-body').html(modalContent);
+  
+          // 모달 열기
+          $('#movieDetail').modal('show');
+        },
+        error: function() {
+          alert("영화 정보를 불러오는 데 실패했습니다.");
+        }
+      });
+    });
+  });
+  
 
 
 // 닫기 버튼 클릭 시 모달 닫기
@@ -396,5 +406,41 @@ window.addEventListener('click', function(event) {
     document.getElementById('movieDetail').style.display = 'none';
   }
 });
+
+
+
+
+        // llm 모델 테스트 
+        // function performSearch() {
+        //     const input = document.getElementById('searchCorner').value;
+        //     const url = `http://127.0.0.1:8000/search?query=${encodeURIComponent(input)}`;  // FastAPI 서버로 요청
+
+        //     // 검색한 URL을 화면에 표시
+        //     // document.getElementById('urlDisplay').innerText = `검색한 URL: ${url}`;
+
+        //     // AJAX 요청을 보내 FastAPI 서버에서 처리하도록 함
+        //     const xhr = new XMLHttpRequest();
+        //     xhr.open("GET", url, true);
+        //     xhr.onreadystatechange = function () {
+        //         if (xhr.readyState == 4 && xhr.status == 200) { // 응답 상태가 200일 때 실행
+        //             // readyState는 XMLHttpRequest 객체의 상태를 나타내며, 0에서 4까지의 값을 가질 수 있습니다
+        //             // 200같은 상태 
+        //             const response = JSON.parse(xhr.responseText); // json 형태로 파싱 
+        //             if (response.result) {
+        //                 document.getElementById('result').innerText = response.result;  // 외부 API의 응답을 출력
+        //             } else {
+        //                 document.getElementById('result').innerText = response.error || '알 수 없는 오류';
+        //             }
+        //         } else if (xhr.readyState == 4) {
+        //             document.getElementById('result').innerText = '요청 중 오류가 발생했습니다';
+        //         }
+        //     };
+        //     xhr.send();
+        // }
+
+        // function clearInput() {
+        //     document.getElementById('searchCorner').value = '';
+        //     document.getElementById('result').innerText = '';
+        // }
 
     </script>

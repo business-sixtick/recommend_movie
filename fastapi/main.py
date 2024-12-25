@@ -1,6 +1,6 @@
-from fastapi import FastAPI, Depends, HTTPException, Request, Form, Cookie, Query
+from fastapi import FastAPI, Depends, HTTPException, Request, Form
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import RedirectResponse, JSONResponse, FileResponse         
+from fastapi.responses import RedirectResponse, FileResponse         
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from pydantic import BaseModel
@@ -8,17 +8,13 @@ from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime, timedelta
-from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from starlette.requests import Request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from typing import Optional, Dict
+from typing import Optional
 import json
 import base64
-import httpx
-import requests
-from bs4 import BeautifulSoup
 
 # .env 파일에서 환경 변수 로드하기
 from dotenv import load_dotenv
@@ -28,16 +24,20 @@ import os
 load_dotenv()
 
 # 환경 변수 사용하기
-ID = os.getenv('ID')
-PASS = os.getenv('PASS')
-HOST = os.getenv('HOST')
-PORT = os.getenv('PORT')
+ID = os.getenv('DB_USER')
+PASS = os.getenv('DB_PASS')
+HOST = os.getenv('DB_HOST')
+PORT = os.getenv('DB_PORT')
+DB_NAME = os.getenv('DB_NAME')
+
+print(f"ID: {ID}, PASS: {PASS}, HOST: {HOST}, PORT: {PORT}, DB_NAME: {DB_NAME}")
 
 # Database configuration
 # DATABASE_URL = "mysql+pymysql://username:password@localhost/db_name"
-DATABASE_URL = "mysql+pymysql://ahncho:dkswh18@192.168.0.26:3306/movie_fastapi"
-if ID:
-    DATABASE_URL = f"mysql+pymysql://{ID}:{PASS}@{HOST}:{PORT}/movie_fastapi"
+# DATABASE_URL = "mysql+pymysql://ahncho:dkswh18@192.168.0.26:3306/movie_fastapi"
+# DATABASE_URL = "mysql+pymysql://root:root@127.0.0.1:3306/movie"
+# if ID:
+DATABASE_URL = f"mysql+pymysql://{ID}:{PASS}@{HOST}:{PORT}/movie_fastapi"
 print(f'DATABASE_URL : {DATABASE_URL}' )
 # 여기서 붙는 pymysql은 데이터베이스 드라이버: 이건 주로 간단한 개발 환경에 사용한다
 # 공식 드라이버는 mysql-connector
