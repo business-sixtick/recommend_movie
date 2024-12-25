@@ -1,2 +1,11 @@
 # 필요한 모듈 적시시
-fastapi[all]
+fastapi[all]       # 경량 서버 , uvicorn 포함함
+passlib           ## CryptContext
+python-jose            ## jwt
+sqlalchemy            ## orm
+requests            ## requests, url 관련
+beautifulsoup4            ## bs4 , 웹크롤링
+pymysql            ## pymysql, 마이에스큐엘 커넥터
+python-dotenv     ## .env 사용
+cryptography      ## caching_sha2_password 마이에스큐엘  인증방식
+bcrypt            ## passlib
