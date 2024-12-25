@@ -1,0 +1,36 @@
+
+
+테스트 환경 설정 (레노버 노트북 , 윈도우) 
+ 
+[Console]::InputEncoding = [System.Text.Encoding]::UTF8
+[Console]::InputEncoding
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::OutputEncoding
+notepad $PROFILE   ## 영구적 변경
+chcp  ## 확인
+
+
+
+
+깃 클론 이후  
+
+cd /source
+python -m venv movie
+.\movie\Scripts\activate
+cd .\recommend_movie\fastapi
+pip install -r requirements.txt            ## 모두 구성했을때 실행... 아 윈도우에서 자꾸 cp949 디코딩 에러뜨는거 보니 인코딩을 cp949해줘야 하나봐봐
+uvicorn main:app --reload
+
+
+- 디펜던시 (윈도우에서 requirements 쓰기 번거롭네 ㅋㅋㅋ)
+pip install fastapi[all]     ## 웹서버
+pip install passlib           ## CryptContext
+pip install python-jose            ## jwt
+pip install sqlalchemy            ## orm
+pip install requests            ## requests, url 관련
+pip install beautifulsoup4            ## bs4 , 웹크롤링
+pip install pymysql            ## pymysql, 마이에스큐엘 커넥터
+
+
+- 도커 (기본적을 윈도우에서는 wsl 을 사용해서 리눅스 기반으로 도커를 서비스한다)
+https://www.docker.com/
