@@ -1,6 +1,6 @@
-from fastapi import FastAPI, Depends, HTTPException, Request, Form
+from fastapi import FastAPI, Depends, HTTPException, Request, Form, Response
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import RedirectResponse, FileResponse         
+from fastapi.responses import RedirectResponse, FileResponse, JSONResponse         
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from pydantic import BaseModel
@@ -202,10 +202,11 @@ async def login(username: str = Form(...), password: str = Form(...), db: Sessio
 
     # 토큰 생성
     access_token = create_access_token(
-        data={"sub": db_user.username}, expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        data={"sub": db_user.username}, # sub는 jwt의 표준 필드로 subject
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES) # 토큰의 만료 시간 설정 
     )
 
-    header, payload, signature = decode_jwt(access_token)
+    header, payload, signature = decode_jwt(access_token) # jwt 디코딩 
     # 출력
     print()
     print("Header:", json.dumps(header, indent=4))
@@ -213,28 +214,30 @@ async def login(username: str = Form(...), password: str = Form(...), db: Sessio
     print("Signature:", signature)
     print()
     
-    # 로그인 성공 시 /list로 리다이렉트 (username을 동적으로 포함)
-    response = RedirectResponse(url="/list", status_code=303)
-    # 로그인 성공 후 사용자가 이동할 경로, 303 see other는 클라이언트가 서버에서 제공한 url로 이동하도록 지시하는 역할 
-    response.set_cookie(key="access_token", value=access_token, httponly=True) # 보안 강화용 
-    return response
-
-
-
-# # 현재 로그인한 사용자의 정보를 가져오는 api
-# @app.get("/users/me", response_model=dict)
-# def read_users_me(current_user: User = Depends(get_current_user)):
-#     return {"username": current_user.username}
+    return JSONResponse( # json 형식의 응답을 생성하는 객체 
+        content={
+            "status": "success",
+            "redirect_url": "/list", # 로그인 성공 후 리디렉션할 url 
+            "access_token": access_token
+        },
+        headers={"Set-Cookie": f"access_token={access_token}; Path=/; HttpOnly; Max-Age={ACCESS_TOKEN_EXPIRE_MINUTES * 60}"}
+        # path를 /로 설정해서 사이트 내 모든 경로에서 유효하다 
+        # httponly 설정을 통해 자바스크립트에서 접근할 수 없도록 해서 보안을 강화한다 
+    )
 
 
 
 
-
+# 로그아웃 처리
 @app.get("/logout")
-async def logout(request: Request):
-    response = templates.TemplateResponse("list.html", {"request":request})
-    response.delete_cookie(key="access_token")
+async def logout(request: Request, response: Response):
+    # access_token 쿠키를 삭제 (로그아웃)
+    response = JSONResponse(content={"status": "success", "redirect_url": "/list"})
+    response.delete_cookie(key="access_token")  # 쿠키 삭제
     return response
+
+
+
 
 # JWT 디코딩 함수
 def decode_access_token(access_token: str) -> Optional[str]:
@@ -248,8 +251,6 @@ def decode_access_token(access_token: str) -> Optional[str]:
 # SECRET_KEY = "secretKey"
 # ALGORITHM = "HS256"
 
-
-
 @app.get("/list")
 async def list_page(request: Request):
     # 쿠키에서 access_token을 확인
@@ -262,11 +263,17 @@ async def list_page(request: Request):
 
     return templates.TemplateResponse("list.html", {"request": request, "username": username})
 
+
+
+
 @app.get("/")
 async def main_page():
     print(f'main_page {datetime.now()}')
     # 단순히 static 디렉토리 안에 있는 index.html을 반환
     return FileResponse("static/index.html")
+
+
+
 
 # # 외부 API 요청을 처리하는 엔드포인트
 # @app.get("/search")
@@ -283,4 +290,11 @@ async def main_page():
 #             return JSONResponse(content={"error": f"HTTP Error: {http_error}"}, status_code=400)
 #         except httpx.RequestError as request_error:
 #             return JSONResponse(content={"error": f"Request Error: {request_error}"}, status_code=400)
-        
+
+
+
+
+# # 현재 로그인한 사용자의 정보를 가져오는 api
+# @app.get("/users/me", response_model=dict)
+# def read_users_me(current_user: User = Depends(get_current_user)):
+#     return {"username": current_user.username}

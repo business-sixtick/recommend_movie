@@ -18,7 +18,7 @@ cd /source
 python -m venv movie              ## 가상환경 생성성
 .\movie\Scripts\activate
 cd .\recommend_movie\fastapi
-pip install -r requirements.txt            ## 모두 구성했을때 실행... 아 윈도우에서 자꾸 cp949 디코딩 에러뜨는거 보니 인코딩을 cp949해줘야 하나봐봐
+pip install -r requirements.txt            ## 모두 구성했을때 실행... 아 윈도우에서 자꾸 cp949 디코딩 에러뜨는거 보니 인코딩을 cp949해줘야 하나봐 
 uvicorn main:app --reload
 
 
