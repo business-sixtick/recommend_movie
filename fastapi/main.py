@@ -21,6 +21,9 @@ import requests
 from dotenv import load_dotenv
 import os
 
+
+
+
 # .env 파일을 로드합니다.
 load_dotenv()
 
@@ -334,16 +337,28 @@ async def search_movies(
     # 영화 목록 반환
     return JSONResponse(content=movie_list)
 
-
-
-
-
-
 @app.get("/check-login")
 async def check_login(access_token: Optional[str] = Cookie(None)):
     if is_user_logged_in(access_token):
         return {"isLoggedIn": True}
     return {"isLoggedIn": False}
+
+
+
+
+
+class UserFav(Base):
+    __tablename__ = 'user_fav'
+
+    id = Column(Integer, primary_key=True, index=True)
+    movie_title = Column(String, index=True) # 검색 성능 향상을 위해서 
+    director = Column(String)
+    actor = Column(String)
+    nation = Column(Integer)
+
+    user_id = Column(Integer, ForeignKey('users.id'))  # user 테이블과 외래 키 관계 설정
+
+    user = relationship("User", back_populates="favorites")  # User 모델과 연결
 
 
 
