@@ -279,7 +279,7 @@ async def main_page():
 
 
 # 외부 API의 URL과 API 키
-KOBIS_API_KEY = "20ddcd10640eb87f69ef2fed167ef9ca"
+KOBIS_API_KEY = ""
 KOBIS_BASE_URL = "http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieList.json"
 
 # 쿠키에서 access_token을 읽어 로그인 여부 판단
@@ -303,6 +303,8 @@ async def search_movies(
     if not is_user_logged_in(access_token):
         return JSONResponse(status_code=401, content={"message": "로그인 필요"})
     # 401 Unauthorized 상태 코드는 HTTP 프로토콜에서 "인증되지 않음"
+    
+    
     
     # 외부 API 요청 파라미터 구성
     external_api_params = {

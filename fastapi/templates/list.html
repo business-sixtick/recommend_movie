@@ -476,7 +476,7 @@ function search() {
                     const movieTitle = $(this).text();  // 클릭한 영화 제목
 
                     // 영화 코드에 맞는 API URL 생성
-                    const movieDetailUrl = `http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieInfo.json?key=20ddcd10640eb87f69ef2fed167ef9ca&movieCd=${movieCd}`;  // 실제 API URL로 수정
+                    const movieDetailUrl = `http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieInfo.json?key=&movieCd=${movieCd}`;  // 실제 API URL로 수정
 
                     // API 호출
                     $.ajax({
