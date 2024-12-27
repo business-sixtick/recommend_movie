@@ -1,0 +1,69 @@
+
+
+
+- 테스트하기 
+    ssh sixtick@192.168.0.16                             // 원격접속
+    source venv/bin/activate                             // 파이썬 가상환경 켜기
+    cd venv/source/recommend_movie/llmapi/               //실행코드로 이동
+    uvicorn main:app --reload --host 0.0.0.0 --port 18000    // 서버 실행         
+    http://192.168.0.16:18000/llm/정우성                      // 브라우저에서 테스트
+    http://sixtick.duckdns.org:19821/llm?role=사용자가 제시한 숫자들 중에 제일 큰 숫자를 말해줘&query=1,2,3,4,10,6,7,8,9
+
+
+
+
+## SSL/TLS 인증서 발급 
+
+- sudo apt update
+- sudo apt install certbot python3-certbot-nginx nginx
+- sudo nano /etc/nginx/sites-available/fastapi   (nginx 설정)
+```
+server {
+    listen 80;
+    server_name sixtick.duckdns.org; # 도메인 설정 (IP 주소도 가능)
+
+    location / {
+        proxy_pass http://127.0.0.1:8000; # FastAPI 서버 주소
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # 정적 파일 제공 (옵션)
+    location /static/ {
+        alias /var/www/fastapi/static/;
+    }
+}
+```
+- ps aux | grep uvicorn
+- /home/sixtick/venv/source/recommend_movie/llmapi
+- nohup uvicorn main:app --host 0.0.0.0 --port 8000 --reload > /home/sixtick/uvicorn.log 2>&1 &
+
+- sudo ln -s /etc/nginx/sites-available/fastapi /etc/nginx/sites-enabled/
+- sudo nginx -t  # 설정 파일 테스트
+- sudo systemctl reload nginx  (또는 start)
+
+- sudo iptables -I INPUT 1 -p tcp --dport 443 -j ACCEPT
+- sudo iptables-save | sudo tee /etc/iptables/rules.v4
+- sudo ip6tables-save | sudo tee /etc/iptables/rules.v6
+
+- sudo certbot   (business4dyd@gmail.com  y  y sixtick.duckdns.org
+- sudo certbot -d sixtick.duckdns.org --manual --preferred-challenges dns certonly
+
+
+- 자동갱신 설정 (나중에 다시 확인 해보자자)
+- sudo certbot renew --dry-run
+- sudo crontab -e
+- 0 2 * * * certbot renew --quiet
+
+
+- 인증서 확인 sudo certbot certificates
+- Certificate Path: /etc/letsencrypt/live/sixtick.duckdns.org/fullchain.pem
+- Private Key Path: /etc/letsencrypt/live/sixtick.duckdns.org/privkey.pem
+- https://sixtick.duckdns.org
+
+
+
+
+

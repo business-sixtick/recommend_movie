@@ -1,6 +1,8 @@
 from fastapi import FastAPI    # FastAPI 는 Starlette 를 직접 상속하는 클래스임.
 from fastapi.staticfiles import StaticFiles
 import uvicorn
+from fastapi.middleware.cors import CORSMiddleware
+
 
 from langchain.chains import LLMChain
 from langchain import PromptTemplate
@@ -26,6 +28,14 @@ chain = LLMChain(llm = llm , prompt = prompt)
 # FastAPI 애플리케이션 인스턴스 생성
 app = FastAPI()
 
+# CORS 설정
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 모든 도메인에서 요청 허용 (개발 환경에서는 "*"을 사용)
+    allow_credentials=True,
+    allow_methods=["*"],  # 모든 HTTP 메서드 허용 (GET, POST, PUT, DELETE 등)
+    allow_headers=["*"],  # 모든 헤더 허용
+)
 # 기본 경로 "/"에 대한 GET 요청 처리
 # @app.get("/")
 # async def read_root():
@@ -114,3 +124,9 @@ sql
 <|eot_id|> "모델의 응답이 완료되었습니다."
 
 '''
+
+
+
+# 직접 기동시 nginx 없이 https 가 가능하다다
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=443, ssl_keyfile="/etc/letsencrypt/live/sixtick.duckdns.org/privkey.pem", ssl_certfile="/etc/letsencrypt/live/sixtick.duckdns.org/fullchain.pem")
