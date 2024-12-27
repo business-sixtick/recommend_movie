@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, Request, Form, Response
+from fastapi import FastAPI, Depends, HTTPException, Request, Form, Response, Query, Cookie
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse, FileResponse, JSONResponse         
 from passlib.context import CryptContext
@@ -15,6 +15,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from typing import Optional
 import json
 import base64
+import requests
 
 # .env 파일에서 환경 변수 로드하기
 from dotenv import load_dotenv
@@ -271,6 +272,76 @@ async def main_page():
     print(f'main_page {datetime.now()}')
     # 단순히 static 디렉토리 안에 있는 index.html을 반환
     return FileResponse("static/index.html")
+
+
+
+
+
+
+# 외부 API의 URL과 API 키
+KOBIS_API_KEY = "20ddcd10640eb87f69ef2fed167ef9ca"
+KOBIS_BASE_URL = "http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieList.json"
+
+# 쿠키에서 access_token을 읽어 로그인 여부 판단
+def is_user_logged_in(access_token: Optional[str] = Cookie(None)) -> bool:
+    # access_token이 있으면 로그인한 것으로 간주 (여기서 실제 검증 로직 추가 가능)
+    return bool(access_token)
+# bool()은 Python의 내장 함수로, 주어진 값을 불리언 값(True 또는 False)으로 변환하는 역할을 합니다.
+
+@app.post("/search-request")
+async def search_movies(
+    title: Optional[str] = Form(None),
+    actor: Optional[str] = Form(None),
+    director: Optional[str] = Form(None),
+    nation: Optional[str] = Form(None),
+    access_token: Optional[str] = Cookie(None)  # 쿠키에서 access_token을 받음
+): 
+    # Optional을 사용하는 이유는 해당 파라미터들이 요청 시에 반드시 존재하지 않아도 되기 때문입니다.
+    # 즉, 클라이언트가 title, actor, director, nation 중 일부 또는 전부를 제공하지 않을 수 있다는 점을 반영하는 것입니다.
+    
+        # 로그인 여부 확인
+    if not is_user_logged_in(access_token):
+        return JSONResponse(status_code=401, content={"message": "로그인 필요"})
+    # 401 Unauthorized 상태 코드는 HTTP 프로토콜에서 "인증되지 않음"
+    
+    # 외부 API 요청 파라미터 구성
+    external_api_params = {
+        "key": KOBIS_API_KEY,
+    }
+
+    if title:
+        external_api_params["movieNm"] = title
+    if actor:
+        external_api_params["peopleNm"] = actor
+    if director:
+        external_api_params["directorNm"] = director
+    if nation:
+        external_api_params["repNationCd"] = nation
+
+    # 외부 API 요청 URL 구성
+    url = f"{KOBIS_BASE_URL}?{requests.compat.urlencode(external_api_params)}"
+    print(f"Requesting URL: {url}")
+
+    # 외부 API 호출
+    response = requests.get(url)
+    data = response.json()
+
+    # 외부 API 응답에서 영화 목록 추출 후 반환
+    movie_list = data.get('movieListResult', {}).get('movieList', [])
+    
+    # 영화 목록 반환
+    return JSONResponse(content=movie_list)
+
+
+
+
+
+
+@app.get("/check-login")
+async def check_login(access_token: Optional[str] = Cookie(None)):
+    if is_user_logged_in(access_token):
+        return {"isLoggedIn": True}
+    return {"isLoggedIn": False}
 
 
 

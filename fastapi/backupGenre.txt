@@ -1,0 +1,95 @@
+                <div class="search-item">
+                    <label for="genre-query">Genre</label>
+                    <input class="form-control" type="text" id="genre-query" readonly data-toggle="modal"
+                        data-target="#genreModal">
+                </div>
+
+
+
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="genreModal" tabindex="-1" role="dialog" aria-labelledby="genreModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="genreModalLabel">Select Genres</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <button id="select-all" class="btn btn-primary btn-sm mb-2">Select All</button>
+                        <button id="deselect-all" class="btn btn-secondary btn-sm mb-2">Deselect All</button>
+                        <div id="genre-checkboxes">
+                            <div><input type="checkbox" class="genre-checkbox" value="드라마"> 드라마</div>
+                            <div><input type="checkbox" class="genre-checkbox" value="코미디"> 코미디</div>
+                            <div><input type="checkbox" class="genre-checkbox" value="액션"> 액션</div>
+                            <div><input type="checkbox" class="genre-checkbox" value="멜로/로맨스"> 멜로/로맨스</div>
+                            <div><input type="checkbox" class="genre-checkbox" value="스릴러"> 스릴러</div>
+                            <div><input type="checkbox" class="genre-checkbox" value="미스터리"> 미스터리</div>
+                            <div><input type="checkbox" class="genre-checkbox" value="공포(호러)"> 공포(호러)</div>
+                            <div><input type="checkbox" class="genre-checkbox" value="어드벤처"> 어드벤처</div>
+                            <div><input type="checkbox" class="genre-checkbox" value="범죄"> 범죄</div>
+                            <div><input type="checkbox" class="genre-checkbox" value="가족"> 가족</div>
+                            <div><input type="checkbox" class="genre-checkbox" value="판타지"> 판타지</div>
+                            <div><input type="checkbox" class="genre-checkbox" value="SF"> SF</div>
+                            <div><input type="checkbox" class="genre-checkbox" value="서부극(웨스턴)"> 서부극(웨스턴)</div>
+                            <div><input type="checkbox" class="genre-checkbox" value="사극"> 사극</div>
+                            <div><input type="checkbox" class="genre-checkbox" value="애니메이션"> 애니메이션</div>
+                            <div><input type="checkbox" class="genre-checkbox" value="다큐멘터리"> 다큐멘터리</div>
+                            <div><input type="checkbox" class="genre-checkbox" value="전쟁"> 전쟁</div>
+                            <div><input type="checkbox" class="genre-checkbox" value="뮤지컬"> 뮤지컬</div>
+                            <div><input type="checkbox" class="genre-checkbox" value="성인물(에로)"> 성인물(에로)</div>
+                            <div><input type="checkbox" class="genre-checkbox" value="공연"> 공연</div>
+                            <div><input type="checkbox" class="genre-checkbox" value="기타"> 기타</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+        // 장르 체크박스
+        const updateSelectedGenres = () => {
+            const selected = Array.from(document.querySelectorAll('.genre-checkbox:checked'))
+                .map(checkbox => checkbox.value);
+            document.getElementById('genre-query').value = selected.join(',');
+        };
+
+        const filterMoviesByGenres = (selectedGenres) => {
+            document.querySelectorAll('.movie-item').forEach(movie => {
+                const movieGenres = movie.querySelector('.movie-genre').textContent.split(',');
+                const hasMatch = selectedGenres.some(genre => movieGenres.includes(genre));
+                movie.style.display = hasMatch ? 'block' : 'none';
+            });
+        };
+
+        document.getElementById('select-all').addEventListener('click', () => {
+            document.querySelectorAll('.genre-checkbox').forEach(checkbox => checkbox.checked = true);
+            updateSelectedGenres();
+        });
+
+        document.getElementById('deselect-all').addEventListener('click', () => {
+            document.querySelectorAll('.genre-checkbox').forEach(checkbox => checkbox.checked = false);
+            updateSelectedGenres();
+        });
+
+        document.querySelectorAll('.genre-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', updateSelectedGenres);
+        });
+
+
+
+
+
+            

@@ -10,10 +10,6 @@
         width: 100%;
     }
 
-    .title-container {
-        width: 100%;
-    }
-
     .detail-search-container {
         display: flex;
         flex-wrap: wrap;
@@ -91,14 +87,12 @@
         <!-- <input class="form-control" id="searchTitle" placeholder="제목"> -->
         <h1>영화 검색</h1>
         <div class="search-container">
-            <div class="title-container">
-                <div>
-                    <label for="title-query">Title</label>
-                    <input class="form-control full-width" type="text" id="title-query">
-                </div>
-            </div>
-
             <div class="detail-search-container">
+                <div class="search-item">
+                    <label for="title-query">Title</label>
+                    <input class="form-control" type="text" id="title-query">
+                </div>
+
                 <div class="search-item">
                     <label for="actor-query">Actor</label>
                     <input class="form-control" type="text" id="actor-query">
@@ -110,24 +104,24 @@
                 </div>
 
                 <div class="search-item">
-                    <label for="genre-query">Genre</label>
-                    <input class="form-control" type="text" id="genre-query">
-                </div>
-
-                <div class="search-item">
                     <label for="nation-query">Nation</label>
-                    <input class="form-control" type="text" id="nation-query">
+                    <input class="form-control" type="text" id="nation-query" readonly data-toggle="modal"
+                        data-target="#nationModal">
                 </div>
             </div>
         </div>
-        <button class="btn btn-primary btn-search" onclick="searchMovies()">검색</button>
-        <button class="btn btn-secondary btn-search" onclick="searchMovies()">초기화</button>
+        <button class="btn btn-primary btn-search" id="search-button">검색</button>
+        <!-- <button class="btn btn-secondary btn-search" onclick="searchMovies()">초기화</button> -->
     </div>
 
     <div id="loading" class="loading" style="display:none;">검색 중...</div>
     <div class="movie-list" id="movie-list"></div>
     </div>
 
+
+
+
+    <!-- 로그인과 회원가입 모달창 -->
     <div id="modalBackground" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
@@ -176,7 +170,8 @@
 
 
 
-    <!-- 모달창 -->
+
+    <!-- 영화 상세 정보 모달창 -->
     <div id="movieDetail" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="movieDetailLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -198,6 +193,37 @@
         </div>
     </div>
 
+
+    <!-- Modal -->
+    <div class="modal fade" id="nationModal" tabindex="-1" role="dialog" aria-labelledby="genreModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="nationModalLabel">Select ONLY ONE Nation</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div id="genre-checkboxes">
+                            <!-- 체크박스와 달리 라디오는 보통 하나의 선택사항만 필요할 때 사용한다 -->
+                            <!-- 다른 사항들을 선택하지 않기 위해서는 자바스크립트에 이벤트를 추가한다 -->
+                            <div><input type="radio" class="nation-radio" id="22041011" value="한국"> 한국</div>
+                            <div><input type="radio" class="nation-radio" id="22041008" value="일본"> 일본</div>
+                            <div><input type="radio" class="nation-radio" id="22044010" value="영국"> 영국</div>
+                            <div><input type="radio" class="nation-radio" id="22042002" value="미국"> 미국</div>
+                            <div><input type="radio" class="nation-radio" id="22041009" value="중국"> 중국</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
     <script>
@@ -238,37 +264,6 @@
 
 
 
-        // 로그인창 
-        $(document).ready(function () {
-            $('#loginForm').on('submit', function (event) {
-                event.preventDefault();
-
-                const formData = $(this).serialize();
-
-                $.ajax({
-                    url: '/login',
-                    method: 'POST',
-                    data: formData,
-                    success: function (response) {
-                        if (response.status === 'success') {
-                            // 로그인 폼 숨기기 및 모달 닫기
-                            $('#loginForm').hide();
-                            $('#modalBackground').modal('hide');
-
-                            // 서버에서 반환된 리디렉션 URL로 이동
-                            window.location.href = response.redirect_url;
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error('로그인 실패:', error); // 개발자용 에러 로그
-                        alert('로그인에 실패했습니다. 다시 시도해주세요.');
-                    }
-                });
-            });
-        });
-
-
-
 
         // 로그아웃 버튼 누르기 
         $('#logoutButton').on('click', function () {
@@ -291,7 +286,7 @@
 
 
 
-
+        // 회원 가입 
         document.getElementById('registerForm')?.addEventListener('submit', function (event) {
             event.preventDefault(); // 폼 제출 기본 동작을 방지
 
@@ -325,106 +320,175 @@
 
 
 
-        //영화 목록 
-        async function searchMovies() {
-            const titleQuery = document.getElementById("title-query").value;
-            const directorQuery = document.getElementById("director-query").value;
-            const loadingElement = document.getElementById("loading");
-            const movieListElement = document.getElementById("movie-list");
 
-            // 검색 중 메시지 표시
-            loadingElement.style.display = 'block';
-            movieListElement.innerHTML = ''; // 이전 결과 초기화
+        // 국가 선택 모달창에서 하나만 고르기 
+        document.addEventListener('DOMContentLoaded', function () {
+            const nationRadios = document.querySelectorAll('.nation-radio');
 
-            if (titleQuery.trim() === '' && directorQuery.trim() === '') {
-                loadingElement.style.display = 'none';
-                // alert('영화 제목 또는 감독 이름을 입력하세요');
-                return;
-            }
-
-            try {
-                // API 파라미터 구성
-                const params = new URLSearchParams({
-                    key: '',
-                });
-
-                if (titleQuery.trim() !== '') {
-                    params.append('movieNm', titleQuery);
-                }
-
-                if (directorQuery.trim() !== '') {
-                    params.append('directorNm', directorQuery);
-                }
-
-                // API 요청 보내기
-                const response = await fetch(`http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieList.json?${params.toString()}`);
-
-                if (!response.ok) {
-                    throw new Error('API 요청이 실패했습니다');
-                }
-
-                const data = await response.json();
-
-                // 영화 목록이 없으면 메시지 출력
-                if (!data.movieListResult || !data.movieListResult.movieList || data.movieListResult.movieList.length === 0) {
-                    movieListElement.innerHTML = '<p>검색 결과가 없습니다.</p>';
-                } else {
-                    // 영화 목록 출력
-                    data.movieListResult.movieList.forEach(movie => {
-                        const movieElement = document.createElement('div');
-                        movieElement.classList.add('movie-item');
-                        movieElement.dataset.movieCd = movie.movieCd; // data-movieCd 추가
-                        movieElement.innerHTML = `
-                        <h3>${movie.movieNm} (${movie.prdtYear})</h3>
-                        <p><strong>영화 코드:</strong> ${movie.movieCd}</p>
-                        <p><strong>영어 제목:</strong> ${movie.movieNmEn}</p>
-                        <p><strong>개봉일:</strong> ${movie.openDt}</p>
-                        <p><strong>영화 유형:</strong> ${movie.typeNm}</p>
-                        <p><strong>제작 상태:</strong> ${movie.prdtStatNm}</p>
-                        <p><strong>제작 국가:</strong> ${movie.nationAlt}</p>
-                        <p><strong>장르:</strong> ${movie.genreAlt}</p>
-                        <p><strong>대표 제작국가:</strong> ${movie.repNationNm}</p>
-                        <p><strong>대표 장르:</strong> ${movie.repGenreNm}</p>
-                        <p><strong>감독:</strong> ${movie.directors}</p>
-                        <p><strong>출연 배우:</strong> ${movie.peopleNm}</p>
-                        <p><strong>제작사:</strong> ${movie.companyNm}</p>
-                    `;
-                        movieListElement.appendChild(movieElement);
+            nationRadios.forEach(radio => {
+                radio.addEventListener('click', function () {
+                    // 선택된 라디오 버튼을 제외한 나머지 버튼들 선택 해제
+                    nationRadios.forEach(r => {
+                        if (r !== this) {
+                            r.checked = false;
+                        }
                     });
-                }
-            } catch (error) {
-                console.error('Error fetching movie data:', error);
-                movieListElement.innerHTML = '<p>데이터를 불러오는 데 오류가 발생했습니다.</p>';
-            } finally {
-                // 검색 중 메시지 숨기기
-                loadingElement.style.display = 'none';
+                });
+            });
+        });
+
+
+
+
+        // 로그인창 
+        $(document).ready(function () {
+            $('#loginForm').on('submit', function (event) {
+                event.preventDefault();
+
+                const formData = $(this).serialize();
+
+                $.ajax({
+                    url: '/login',
+                    method: 'POST',
+                    data: formData,
+                    success: function (response) {
+                        if (response.status === 'success') {
+
+                    // 로그인 성공 후 access_token 쿠키를 설정 (응답에서 쿠키 설정 필요)
+                    document.cookie = `access_token=${response.access_token}; path=/;`;
+
+                            // 로그인 폼 숨기기 및 모달 닫기
+                            $('#loginForm').hide();
+                            $('#modalBackground').modal('hide');
+
+                            // 서버에서 반환된 리디렉션 URL로 이동
+                            window.location.href = response.redirect_url;
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('로그인 실패:', error); // 개발자용 에러 로그
+                        alert('로그인에 실패했습니다. 다시 시도해주세요.');
+                    }
+                });
+            });
+        });
+
+
+
+
+
+            // 검색 버튼 이벤트 
+            document.addEventListener('DOMContentLoaded', function () {
+
+                // #search-button 클릭 시 이벤트 처리
+                document.querySelector('#search-button').addEventListener('click', function (event) {
+                    event.preventDefault();  // 폼의 기본 동작인 페이지 새로 고침 방지
+                    
+                    // 검색 함수를 부른다 
+                    search();
+                });
+            });
+
+
+
+
+
+ // 검색 요청 함수
+function search() {
+    const title = document.getElementById('title-query').value;
+    const actor = document.getElementById('actor-query').value;
+    const director = document.getElementById('director-query').value;
+    const nation = document.querySelector('.nation-radio:checked') ? document.querySelector('.nation-radio:checked').id : null;
+
+    // API 요청을 위한 데이터 구성
+    const formData = {
+        title: title,
+        actor: actor,
+        director: director,
+        nation: nation
+    };
+
+    // 서버에 로그인 상태 확인 요청
+    $.ajax({
+        url: '/check-login',  // 서버에서 로그인 상태를 확인하는 엔드포인트
+        method: 'GET',
+        success: function(response) {
+            if (response.isLoggedIn) {
+                // 로그인된 상태라면, search 요청
+                $.ajax({
+                    url: '/search-request',
+                    method: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        displayResults(response); // 서버에서 받은 영화 목록을 표시
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('API 호출 실패:', error);
+                        alert('영화 검색에 실패했습니다. 다시 시도해주세요.');
+                    }
+                });
+            } else {
+                // 로그인되지 않으면 모달 띄우기
+                $('#modalBackground').modal('show');
             }
         }
+    });
+}
+
+            // 영화 결과를 화면에 표시하는 함수
+            function displayResults(movies) {
+                const resultsContainer = document.getElementById('movie-list');
+                resultsContainer.innerHTML = ''; // 기존 결과 초기화
+
+                if (movies.length === 0) {
+                    resultsContainer.innerHTML = '<p>No results found.</p>';
+                } else {
+                    movies.forEach(function (movie) {
+                        const movieHTML = `
+                <h3>${movie.movieNm} (${movie.prdtYear})</h3>
+                <p><strong>영화 코드:</strong> ${movie.movieCd}</p>
+                <p><strong>영어 제목:</strong> ${movie.movieNmEn}</p>
+                <p><strong>개봉일:</strong> ${movie.openDt}</p>
+                <p><strong>영화 유형:</strong> ${movie.typeNm}</p>
+                <p><strong>제작 상태:</strong> ${movie.prdtStatNm}</p>
+                <p><strong>제작 국가:</strong> ${movie.nationAlt}</p>
+                <p><strong>장르:</strong> ${movie.genreAlt}</p>
+                <p><strong>대표 제작국가:</strong> ${movie.repNationNm}</p>
+                <p><strong>대표 장르:</strong> ${movie.repGenreNm}</p>
+                <p><strong>감독:</strong> ${movie.directors}</p>
+                <p><strong>출연 배우:</strong> ${movie.peopleNm}</p>
+                <p><strong>제작사:</strong> ${movie.companyNm}</p>
+            `;
+                        resultsContainer.innerHTML += movieHTML;
+                    });
+                }
+            }
 
 
 
 
-        // 영화 제목을 클릭하면 상세 정보 모달창이 열림 
-        $(document).ready(function () {
-            // $(document)에서 직접 이벤트 위임
-            $(document).on('click', '.movie-item h3', function () {
-                const movieCd = $(this).closest('.movie-item').data('movieCd');  // 가장 가까운 .movie-item 요소에서 movieCd 값 추출
-                const movieTitle = $(this).text();  // 클릭한 영화 제목
 
-                // 영화 코드에 맞는 API URL 생성
-                const movieDetailUrl = `http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieInfo.json?key=&movieCd=${movieCd}`;  // 실제 API URL로 수정
+            // 영화 제목을 클릭하면 상세 정보 모달창이 열림 
+            $(document).ready(function () {
+                // $(document)에서 직접 이벤트 위임
+                $(document).on('click', '.movie-list h3', function () {
+                    const movieCd = $(this).closest('.movie-list').data('movieCd');  // 가장 가까운 .movie-item 요소에서 movieCd 값 추출
+                    const movieTitle = $(this).text();  // 클릭한 영화 제목
 
-                // API 호출
-                $.ajax({
-                    url: movieDetailUrl,
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function (response) {
-                        // API 응답에서 영화 정보 가져오기
-                        const movie = response.movieInfoResult.movieInfo;  // API 응답에서 영화 정보
+                    // 영화 코드에 맞는 API URL 생성
+                    const movieDetailUrl = `http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieInfo.json?key=20ddcd10640eb87f69ef2fed167ef9ca&movieCd=${movieCd}`;  // 실제 API URL로 수정
 
-                        // 영화 정보 모달에 표시하기
-                        const modalContent = `
+                    // API 호출
+                    $.ajax({
+                        url: movieDetailUrl,
+                        method: 'GET',
+                        dataType: 'json',
+                        success: function (response) {
+                            // API 응답에서 영화 정보 가져오기
+                            const movie = response.movieInfoResult.movieInfo;  // API 응답에서 영화 정보
+
+                            // 영화 정보 모달에 표시하기
+                            const modalContent = `
             <p><strong>영화코드:</strong> ${movie.movieCd}</p>
             <p><strong>영화명(국문):</strong> ${movie.movieNm}</p>
             <p><strong>영화명(영문):</strong> ${movie.movieNmEn}</p>
@@ -443,34 +507,34 @@
             <p><strong>${company.companyPartNm}:</strong> ${company.companyNm} ${company.companyNmEn}</p>
             `).join("")}
           `;
-                        // 사이트 가서 위에 정보 더 채워라 
+                            // 사이트 가서 위에 정보 더 채워라 
 
-                        // 모달의 본문에 내용을 채우기
-                        $('#movieDetail .modal-body').html(modalContent);
+                            // 모달의 본문에 내용을 채우기
+                            $('#movieDetail .modal-body').html(modalContent);
 
-                        // 모달 열기
-                        $('#movieDetail').modal('show');
-                    },
-                    error: function () {
-                        alert("영화 정보를 불러오는 데 실패했습니다.");
-                    }
+                            // 모달 열기
+                            $('#movieDetail').modal('show');
+                        },
+                        error: function () {
+                            alert("영화 정보를 불러오는 데 실패했습니다.");
+                        }
+                    });
                 });
             });
-        });
 
 
 
-        // 닫기 버튼 클릭 시 모달 닫기
-        document.querySelector('.close').addEventListener('click', function () {
-            document.getElementById('movieDetail').style.display = 'none';
-        });
-
-        // 모달 외부 클릭 시 모달 닫기
-        window.addEventListener('click', function (event) {
-            if (event.target === document.getElementById('movieDetail')) {
+            // 닫기 버튼 클릭 시 모달 닫기
+            document.querySelector('.close').addEventListener('click', function () {
                 document.getElementById('movieDetail').style.display = 'none';
-            }
-        });
+            });
+
+            // 모달 외부 클릭 시 모달 닫기
+            window.addEventListener('click', function (event) {
+                if (event.target === document.getElementById('movieDetail')) {
+                    document.getElementById('movieDetail').style.display = 'none';
+                }
+            });
 
 
 

@@ -1,0 +1,13 @@
+<h3>${movie.movieNm} (${movie.prdtYear})</h3>
+                        <p><strong>영화 코드:</strong> ${movie.movieCd}</p>
+                        <p><strong>영어 제목:</strong> ${movie.movieNmEn}</p>
+                        <p><strong>개봉일:</strong> ${movie.openDt}</p>
+                        <p><strong>영화 유형:</strong> ${movie.typeNm}</p>
+                        <p><strong>제작 상태:</strong> ${movie.prdtStatNm}</p>
+                        <p><strong>제작 국가:</strong> ${movie.nationAlt}</p>
+                        <p><strong>장르:</strong> ${movie.genreAlt}</p>
+                        <p><strong>대표 제작국가:</strong> ${movie.repNationNm}</p>
+                        <p><strong>대표 장르:</strong> ${movie.repGenreNm}</p>
+                        <p><strong>감독:</strong> ${movie.directors}</p>
+                        <p><strong>출연 배우:</strong> ${movie.peopleNm}</p>
+                        <p><strong>제작사:</strong> ${movie.companyNm}</p>
