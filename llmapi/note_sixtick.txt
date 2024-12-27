@@ -6,8 +6,7 @@
     source venv/bin/activate                             // 파이썬 가상환경 켜기
     cd venv/source/recommend_movie/llmapi/               //실행코드로 이동
     uvicorn main:app --reload --host 0.0.0.0 --port 18000    // 서버 실행         
-    http://192.168.0.16:18000/llm/정우성                      // 브라우저에서 테스트
-    http://sixtick.duckdns.org:19821/llm?role=사용자가 제시한 숫자들 중에 제일 큰 숫자를 말해줘&query=1,2,3,4,10,6,7,8,9
+    https://sixtick.duckdns.org/llm?role=사용자가 제시한 숫자들 중에 제일 큰 숫자를 말해줘&query=1,2,3,4,10,6,7,8,9
 
 
 
@@ -37,7 +36,7 @@ server {
 }
 ```
 - ps aux | grep uvicorn
-- /home/sixtick/venv/source/recommend_movie/llmapi
+- cd /home/sixtick/venv/source/recommend_movie/llmapi
 - nohup uvicorn main:app --host 0.0.0.0 --port 8000 --reload > /home/sixtick/uvicorn.log 2>&1 &
 
 - sudo ln -s /etc/nginx/sites-available/fastapi /etc/nginx/sites-enabled/
