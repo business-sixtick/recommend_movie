@@ -294,8 +294,8 @@ async def main_page():
 # CORS 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:8000", "http://localhost:8000"],  # 허용할 출처 목록
-    allow_credentials=True,
+    allow_origins=["http://127.0.0.1:8000", "http://localhost:8000"],  # 허용할 출처 목록 # 다른 출처에서 요청이 오면 차단된다 
+    allow_credentials=True, # 쿠키나 인증 정보가 포함된 요청을 허용한다 
     allow_methods=["*"],  # 모든 HTTP 메서드 허용
     allow_headers=["*"],  # 모든 HTTP 헤더 허용
 )
@@ -303,18 +303,12 @@ app.add_middleware(
 # 외부 API의 URL과 API 키
 KOBIS_API_KEY = ""
 KOBIS_BASE_URL = "http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieList.json"
-
-# # 쿠키에서 access_token을 읽어 로그인 여부 판단
-# def is_user_logged_in(access_token: Optional[str] = Cookie(None)) -> bool:
-#     # access_token이 있으면 로그인한 것으로 간주 (여기서 실제 검증 로직 추가 가능)
-#     return bool(access_token)
-# # bool()은 Python의 내장 함수로, 주어진 값을 불리언 값(True 또는 False)으로 변환하는 역할을 합니다.
     
 # DB 세션 생성 함수
 def get_db():
-    db = SessionLocal()
+    db = SessionLocal() # 데이터베이스 세션을 생성하는 객체 
     try:
-        yield db
+        yield db # 의존성 주입 시스템을 활용하여 요청이 있을 때마다 db 세션을 전달 
     finally:
         db.close()
         
