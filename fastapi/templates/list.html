@@ -445,6 +445,7 @@ function search() {
                 } else {
                     movies.forEach(function (movie) {
                         const movieHTML = `
+                 <div class="movie-list" data-movieCd="${movie.movieCd}">
                 <h3>${movie.movieNm} (${movie.prdtYear})</h3>
                 <p><strong>영화 코드:</strong> ${movie.movieCd}</p>
                 <p><strong>영어 제목:</strong> ${movie.movieNmEn}</p>
@@ -455,10 +456,11 @@ function search() {
                 <p><strong>장르:</strong> ${movie.genreAlt}</p>
                 <p><strong>대표 제작국가:</strong> ${movie.repNationNm}</p>
                 <p><strong>대표 장르:</strong> ${movie.repGenreNm}</p>
-                <p><strong>감독:</strong> ${movie.directors}</p>
-                <p><strong>출연 배우:</strong> ${movie.peopleNm}</p>
-                <p><strong>제작사:</strong> ${movie.companyNm}</p>
+                <p><strong>감독:</strong> ${movie.directors.map(director => director.peopleNm).join(",")}</p>
+                <p><strong>제작사 코드:</strong> ${movie.companys.map(company => company.companyCd).join(",")}</p>
+                <p><strong>제작사명:</strong> ${movie.companys.map(company => company.companyNm).join(",")}</p>
             `;
+            
                         resultsContainer.innerHTML += movieHTML;
                     });
                 }
@@ -467,60 +469,63 @@ function search() {
 
 
 
-
-            // 영화 제목을 클릭하면 상세 정보 모달창이 열림 
             $(document).ready(function () {
                 // $(document)에서 직접 이벤트 위임
                 $(document).on('click', '.movie-list h3', function () {
-                    const movieCd = $(this).closest('.movie-list').data('movieCd');  // 가장 가까운 .movie-item 요소에서 movieCd 값 추출
-                    const movieTitle = $(this).text();  // 클릭한 영화 제목
-
-                    // 영화 코드에 맞는 API URL 생성
-                    const movieDetailUrl = `http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieInfo.json?key=&movieCd=${movieCd}`;  // 실제 API URL로 수정
-
-                    // API 호출
+                    // 클릭한 영화 제목을 포함한 .movie-list 요소를 찾고, 그 안의 data-movieCd 속성에서 영화 코드 추출
+                    const movieCd = $(this).closest('.movie-list').data('moviecd'); // 'moviecd'로 속성 이름을 일치시켜서 접근
+            
+                    console.log(`Selected Movie Code: ${movieCd}`);  // movieCd 확인용 로그
+                    
+                    // FastAPI 서버에 요청
+                    const backendUrl = `http://localhost:8000/movie/${movieCd}`;
+                    
                     $.ajax({
-                        url: movieDetailUrl,
+                        url: backendUrl,
                         method: 'GET',
                         dataType: 'json',
-                        success: function (response) {
-                            // API 응답에서 영화 정보 가져오기
-                            const movie = response.movieInfoResult.movieInfo;  // API 응답에서 영화 정보
-
-                            // 영화 정보 모달에 표시하기
-                            const modalContent = `
-            <p><strong>영화코드:</strong> ${movie.movieCd}</p>
-            <p><strong>영화명(국문):</strong> ${movie.movieNm}</p>
-            <p><strong>영화명(영문):</strong> ${movie.movieNmEn}</p>
-            <p><strong>제작연도:</strong> ${movie.prdtYear}</p>
-            <p><strong>상영시간:</strong> ${movie.showTm} 분</p>
-            <p><strong>개봉일:</strong> ${movie.openDt}</p>
-            <p><strong>제작상태:</strong> ${movie.prdtStatNm}</p>
-            <p><strong>영화유형:</strong> ${movie.typeNm}</p>
-            <p><strong>제작국가:</strong> ${movie.nations.map(nation => nation.nationNm).join(", ")}</p>
-            <p><strong>장르:</strong> ${movie.genres.map(genre => genre.genreNm).join(", ")}</p>
-            <p><strong>감독:</strong> ${movie.directors.map(director => director.peopleNm).join(", ")}</p>
-            <p><strong>배우:</strong> ${movie.actors.map(actor => actor.peopleNm).join(", ")}</p>
-            <p><strong>심의번호:</strong> ${movie.audits.map(audit => audit.auditNo)}</p>
-            <p><strong>관람등급:</strong> ${movie.audits.map(audit => audit.watchGradeNm)}</p>
-            ${movie.companys.map(company => `
-            <p><strong>${company.companyPartNm}:</strong> ${company.companyNm} ${company.companyNmEn}</p>
-            `).join("")}
-          `;
-                            // 사이트 가서 위에 정보 더 채워라 
-
-                            // 모달의 본문에 내용을 채우기
-                            $('#movieDetail .modal-body').html(modalContent);
-
-                            // 모달 열기
-                            $('#movieDetail').modal('show');
+                        success: function (data) {
+                            console.log(data);  // 서버에서 반환된 데이터를 콘솔에 출력하여 구조 확인
+            
+                            // 서버 응답의 새로운 구조에 맞춰서 처리
+                            if (data && data.movieInfoResult && data.movieInfoResult.movieInfo) {
+                                const movie = data.movieInfoResult.movieInfo;
+                                
+                                // 영화 정보 모달에 표시하기
+                                const modalContent = `
+                                    <p><strong>영화코드:</strong> ${movie.movieCd}</p>
+                                <p><strong>영화명(국문):</strong> ${movie.movieNm}</p>
+                                <p><strong>영화명(영문):</strong> ${movie.movieNmEn}</p>
+                                <p><strong>제작연도:</strong> ${movie.prdtYear}</p>
+                                <p><strong>상영시간:</strong> ${movie.showTm} 분</p>
+                                <p><strong>개봉일:</strong> ${movie.openDt}</p>
+                                <p><strong>제작상태:</strong> ${movie.prdtStatNm}</p>
+                                <p><strong>영화유형:</strong> ${movie.typeNm}</p>
+                                <p><strong>제작국가:</strong> ${movie.nations.map(nation => nation.nationNm).join(", ")}</p>
+                                <p><strong>장르:</strong> ${movie.genres.map(genre => genre.genreNm).join(", ")}</p>
+                                <p><strong>감독:</strong> ${movie.directors.map(director => director.peopleNm).join(", ")}</p>
+                                <p><strong>배우:</strong> ${movie.actors.map(actor => actor.peopleNm).join(", ")}</p>
+                                <p><strong>심의정보:</strong></p>
+                                ${movie.audits.map(audit => `
+                                    <p> - 심의번호: ${audit.auditNo}, 관람등급: ${audit.watchGradeNm}</p>
+                                `).join("")}
+                                ${movie.companys.map(company => `
+                                    <p><strong>${company.companyPartNm}:</strong> ${company.companyNm} (${company.companyNmEn})</p>
+                                `).join("")}
+                                `;
+                                $('#movieDetail .modal-body').html(modalContent);
+                                $('#movieDetail').modal('show');
+                            } else {
+                                alert('영화 목록을 찾을 수 없습니다. 서버 응답을 확인해주세요.');
+                            }
                         },
                         error: function () {
-                            alert("영화 정보를 불러오는 데 실패했습니다.");
+                            alert('영화 정보를 불러오는 데 실패했습니다.');
                         }
                     });
                 });
-            });
+            });            
+            
 
 
 

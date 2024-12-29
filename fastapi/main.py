@@ -1,6 +1,6 @@
-from fastapi import FastAPI, Depends, HTTPException, Request, Form, Response, Query, Cookie
+from fastapi import FastAPI, Depends, HTTPException, Request, Form, Response, Cookie
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import RedirectResponse, FileResponse, JSONResponse         
+from fastapi.responses import FileResponse, JSONResponse         
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from pydantic import BaseModel
@@ -10,13 +10,14 @@ from sqlalchemy.orm import sessionmaker
 from datetime import datetime, timedelta
 from fastapi.templating import Jinja2Templates
 from starlette.requests import Request
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
+from sqlalchemy.orm import sessionmaker, Session, relationship
 from typing import Optional
 import json
 import base64
 import requests
-
+from fastapi.middleware.cors import CORSMiddleware
+from urllib.parse import urlencode
 # .env 파일에서 환경 변수 로드하기
 from dotenv import load_dotenv
 import os
@@ -36,15 +37,9 @@ DB_NAME = os.getenv('DB_NAME')
 
 print(f"ID: {ID}, PASS: {PASS}, HOST: {HOST}, PORT: {PORT}, DB_NAME: {DB_NAME}")
 
-# Database configuration
-# DATABASE_URL = "mysql+pymysql://username:password@localhost/db_name"
-# DATABASE_URL = "mysql+pymysql://ahncho:dkswh18@192.168.0.26:3306/movie_fastapi"
-# DATABASE_URL = "mysql+pymysql://root:root@127.0.0.1:3306/movie"
 # if ID:
 DATABASE_URL = f"mysql+pymysql://{ID}:{PASS}@{HOST}:{PORT}/movie_fastapi"
 print(f'DATABASE_URL : {DATABASE_URL}' )
-# 여기서 붙는 pymysql은 데이터베이스 드라이버: 이건 주로 간단한 개발 환경에 사용한다
-# 공식 드라이버는 mysql-connector
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -80,6 +75,21 @@ class User(Base):
     # 자동 증가 방식식
     username = Column(String(50), unique=True, index=True, nullable=False)
     hashed_password = Column(String(100), nullable=False)
+    
+    favorites = relationship("UserFav", back_populates="user")  # User와 UserFav 관계 설정
+
+class UserFav(Base):
+    __tablename__ = 'user_fav'
+
+    id = Column(Integer, primary_key=True, index=True)
+    movie_title = Column(String(255), index=True)  # 길이를 명시
+    director = Column(String(255))  # 길이를 명시
+    actor = Column(String(255))  # 길이를 명시
+    nation = Column(Integer)
+
+    user_id = Column(Integer, ForeignKey('users.id'))  # user 테이블과 외래 키 관계 설정
+
+    user = relationship("User", back_populates="favorites")  # User 모델과 연결
 
 # Pydantic schemas
 class UserCreate(BaseModel):
@@ -204,10 +214,10 @@ async def login(username: str = Form(...), password: str = Form(...), db: Sessio
     print("db_user:", json.dumps(db_user.__dict__, default=str))  # __dict__로 속성 가져오기
     print()
 
-    # 토큰 생성
+    # db_user에서 id와 username을 포함하여 JWT 생성
     access_token = create_access_token(
-        data={"sub": db_user.username}, # sub는 jwt의 표준 필드로 subject
-        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES) # 토큰의 만료 시간 설정 
+        data={"sub": db_user.username, "id": db_user.id},  # username과 id를 포함
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)  # 토큰 만료 시간 설정
     )
 
     header, payload, signature = decode_jwt(access_token) # jwt 디코딩 
@@ -281,33 +291,83 @@ async def main_page():
 
 
 
+# CORS 설정
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://127.0.0.1:8000", "http://localhost:8000"],  # 허용할 출처 목록
+    allow_credentials=True,
+    allow_methods=["*"],  # 모든 HTTP 메서드 허용
+    allow_headers=["*"],  # 모든 HTTP 헤더 허용
+)
+
 # 외부 API의 URL과 API 키
 KOBIS_API_KEY = ""
 KOBIS_BASE_URL = "http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieList.json"
 
-# 쿠키에서 access_token을 읽어 로그인 여부 판단
-def is_user_logged_in(access_token: Optional[str] = Cookie(None)) -> bool:
-    # access_token이 있으면 로그인한 것으로 간주 (여기서 실제 검증 로직 추가 가능)
-    return bool(access_token)
-# bool()은 Python의 내장 함수로, 주어진 값을 불리언 값(True 또는 False)으로 변환하는 역할을 합니다.
+# # 쿠키에서 access_token을 읽어 로그인 여부 판단
+# def is_user_logged_in(access_token: Optional[str] = Cookie(None)) -> bool:
+#     # access_token이 있으면 로그인한 것으로 간주 (여기서 실제 검증 로직 추가 가능)
+#     return bool(access_token)
+# # bool()은 Python의 내장 함수로, 주어진 값을 불리언 값(True 또는 False)으로 변환하는 역할을 합니다.
+    
+# DB 세션 생성 함수
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+        
+# 토큰을 디코딩하여 사용자 정보 추출
+def get_user_from_token(access_token: Optional[str] = Cookie(None), db: Session = Depends(get_db)):
+    if not access_token:
+        raise HTTPException(status_code=401, detail="로그인 필요")
+    
+    try:
+        # JWT 토큰을 디코딩하여 user_id를 추출
+        payload = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("id")  # JWT 토큰에서 user_id 추출 (사용자가 로그인 시 이 정보를 포함시킴)
 
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+        # DB에서 해당 user_id를 가진 사용자 찾기
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+
+        return user
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
+    except jwt.JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+
+@app.get("/check-login")
+async def check_login(
+    access_token: Optional[str] = Cookie(None),
+    db: Session = Depends(get_db)  # DB 세션 의존성 추가
+):
+    print(f"Received access_token: {access_token}")  # 디버깅 로그
+    try:
+        user = get_user_from_token(access_token, db)
+        return {"isLoggedIn": True}
+    except HTTPException:
+        return {"isLoggedIn": False}
+    
+ 
 @app.post("/search-request")
 async def search_movies(
     title: Optional[str] = Form(None),
     actor: Optional[str] = Form(None),
     director: Optional[str] = Form(None),
     nation: Optional[str] = Form(None),
-    access_token: Optional[str] = Cookie(None)  # 쿠키에서 access_token을 받음
-): 
-    # Optional을 사용하는 이유는 해당 파라미터들이 요청 시에 반드시 존재하지 않아도 되기 때문입니다.
-    # 즉, 클라이언트가 title, actor, director, nation 중 일부 또는 전부를 제공하지 않을 수 있다는 점을 반영하는 것입니다.
-    
-        # 로그인 여부 확인
-    if not is_user_logged_in(access_token):
-        return JSONResponse(status_code=401, content={"message": "로그인 필요"})
-    # 401 Unauthorized 상태 코드는 HTTP 프로토콜에서 "인증되지 않음"
-    
-    
+    access_token: Optional[str] = Cookie(None),  # 쿠키에서 access_token을 받음
+    db: Session = Depends(get_db)  # DB 세션 의존성 추가
+):
+
+    # 로그인 여부 확인 및 user 정보 가져오기
+    user = get_user_from_token(access_token, db)  # access_token으로 사용자의 정보를 가져오는 함수
     
     # 외부 API 요청 파라미터 구성
     external_api_params = {
@@ -331,34 +391,60 @@ async def search_movies(
     response = requests.get(url)
     data = response.json()
 
-    # 외부 API 응답에서 영화 목록 추출 후 반환
+    # 외부 API 응답에서 영화 목록 추출
     movie_list = data.get('movieListResult', {}).get('movieList', [])
+
+    if movie_list:
+        first_movie = movie_list[0]
+        
+        # 첫 번째 영화 정보
+        movie_title = first_movie.get('movieNm')
+        director = first_movie.get('directorNm')
+        actor = first_movie.get('peopleNm')
+        nation = first_movie.get('repNationCd')
+        
+        # 사용자의 DB에 영화 정보 저장
+        user_fav = UserFav(
+            movie_title=movie_title,
+            director=director,
+            actor=actor,
+            nation=nation,
+            user_id=user.id # 로그인된 사용자의 id (현재 예시로 1 사용)
+        )
+        db.add(user_fav)
+        db.commit()
+        db.refresh(user_fav)
+        
+        # 영화 목록 반환
+        return JSONResponse(content=movie_list)
     
-    # 영화 목록 반환
-    return JSONResponse(content=movie_list)
-
-@app.get("/check-login")
-async def check_login(access_token: Optional[str] = Cookie(None)):
-    if is_user_logged_in(access_token):
-        return {"isLoggedIn": True}
-    return {"isLoggedIn": False}
+    return JSONResponse(status_code=404, content={"message": "영화가 없습니다"})
 
 
+MOVIE_DETAIL_URL =  "http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieInfo.json" 
+    
+@app.get("/movie/{movieCd}")
+def get_movie_details(movieCd: str):
+    params = {
+        "key": KOBIS_API_KEY,
+        "movieCd": movieCd
+    }
+    
+    # 요청할 URL을 출력
+    request_url = f"{MOVIE_DETAIL_URL}?{urlencode(params)}"
+    print(f"Request URL: {request_url}")  # 터미널에 출력
+    
+    response = requests.get(MOVIE_DETAIL_URL, params=params)
+        
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="Failed to fetch movie details")
+    
+    # API 응답 전체 데이터를 그대로 반환
+    return response.json()
 
 
 
-class UserFav(Base):
-    __tablename__ = 'user_fav'
 
-    id = Column(Integer, primary_key=True, index=True)
-    movie_title = Column(String, index=True) # 검색 성능 향상을 위해서 
-    director = Column(String)
-    actor = Column(String)
-    nation = Column(Integer)
-
-    user_id = Column(Integer, ForeignKey('users.id'))  # user 테이블과 외래 키 관계 설정
-
-    user = relationship("User", back_populates="favorites")  # User 모델과 연결
 
 
 
@@ -378,11 +464,3 @@ class UserFav(Base):
 #             return JSONResponse(content={"error": f"HTTP Error: {http_error}"}, status_code=400)
 #         except httpx.RequestError as request_error:
 #             return JSONResponse(content={"error": f"Request Error: {request_error}"}, status_code=400)
-
-
-
-
-# # 현재 로그인한 사용자의 정보를 가져오는 api
-# @app.get("/users/me", response_model=dict)
-# def read_users_me(current_user: User = Depends(get_current_user)):
-#     return {"username": current_user.username}

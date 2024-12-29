@@ -1,0 +1,19 @@
+<p><strong>영화코드:</strong> ${movie.movieCd}</p>
+                                <p><strong>영화명(국문):</strong> ${movie.movieNm}</p>
+                                <p><strong>영화명(영문):</strong> ${movie.movieNmEn}</p>
+                                <p><strong>제작연도:</strong> ${movie.prdtYear}</p>
+                                <p><strong>상영시간:</strong> ${movie.showTm} 분</p>
+                                <p><strong>개봉일:</strong> ${movie.openDt}</p>
+                                <p><strong>제작상태:</strong> ${movie.prdtStatNm}</p>
+                                <p><strong>영화유형:</strong> ${movie.typeNm}</p>
+                                <p><strong>제작국가:</strong> ${movie.nations.map(nation => nation.nationNm).join(", ")}</p>
+                                <p><strong>장르:</strong> ${movie.genres.map(genre => genre.genreNm).join(", ")}</p>
+                                <p><strong>감독:</strong> ${movie.directors.map(director => director.peopleNm).join(", ")}</p>
+                                <p><strong>배우:</strong> ${movie.actors.map(actor => actor.peopleNm).join(", ")}</p>
+                                <p><strong>심의정보:</strong></p>
+                                ${movie.audits.map(audit => `
+                                    <p> - 심의번호: ${audit.auditNo}, 관람등급: ${audit.watchGradeNm}</p>
+                                `).join("")}
+                                ${movie.companys.map(company => `
+                                    <p><strong>${company.companyPartNm}:</strong> ${company.companyNm} (${company.companyNmEn})</p>
+                                `).join("")}
