@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, Request, Form, Response, Cookie
+from fastapi import FastAPI, Depends, HTTPException, Request, Form, Response, Cookie, Body
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse         
 from passlib.context import CryptContext
@@ -12,6 +12,7 @@ from fastapi.templating import Jinja2Templates
 from starlette.requests import Request
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import sessionmaker, Session, relationship
+from sqlalchemy.dialects.postgresql import ARRAY  # For PostgreSQL support
 from typing import Optional
 import json
 import base64
@@ -21,6 +22,10 @@ from urllib.parse import urlencode
 # .env 파일에서 환경 변수 로드하기
 from dotenv import load_dotenv
 import os
+from fastapi.security import OAuth2PasswordBearer
+
+# OAuth2PasswordBearer는 '/token' 경로를 기본값으로 사용
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 
@@ -77,19 +82,20 @@ class User(Base):
     hashed_password = Column(String(100), nullable=False)
     
     favorites = relationship("UserFav", back_populates="user")  # User와 UserFav 관계 설정
-
+    
 class UserFav(Base):
     __tablename__ = 'user_fav'
+    
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.id'))  # ForeignKey and primary_key order corrected
+    code = Column(String(255))  # Movie code added
+    title = Column(String(255))
+    director = Column(String(255))  # Array of strings for director
+    actor = Column(String(255))  # Array of strings for actor
+    genre = Column(String(255))  # Array of strings for genre
+    nation = Column(String(255))  # Array of strings for nation
 
-    id = Column(Integer, primary_key=True, index=True)
-    movie_title = Column(String(255), index=True)  # 길이를 명시
-    director = Column(String(255))  # 길이를 명시
-    actor = Column(String(255))  # 길이를 명시
-    nation = Column(Integer)
-
-    user_id = Column(Integer, ForeignKey('users.id'))  # user 테이블과 외래 키 관계 설정
-
-    user = relationship("User", back_populates="favorites")  # User 모델과 연결
+    user = relationship("User", back_populates="favorites")
 
 # Pydantic schemas
 class UserCreate(BaseModel):
@@ -102,6 +108,16 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: str | None = None
+    user_id: int | None = None  # 사용자 ID 추가
+
+    
+class MovieSaveRequest(BaseModel):
+    code: str  # movieCd는 code로 받음
+    title: str  # movieNm은 title로 받음
+    director: str  # 감독 (쉼표로 구분된 문자열로 받음)
+    actor: str  # 배우 (쉼표로 구분된 문자열로 받음)
+    genre: str  # 장르 (쉼표로 구분된 문자열로 받음)
+    nation: str  # 국가 (쉼표로 구분된 문자열로 받음)
 
 # 테이블 생성
 Base.metadata.create_all(bind=engine)
@@ -126,20 +142,27 @@ def authenticate_user(db, username: str, password: str):
         return False
     return user
 
-def get_current_user(token: str, db: Session = Depends(get_db)):
+def get_current_user(token: str= Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    print('get_current_user####################################################')
+    print(token)
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        print(payload)
         username: str = payload.get("sub")
-        if username is None:
+        user_id: int = payload.get("id")  # JWT에서 사용자 ID 추출
+        if username is None or user_id is None:
             raise HTTPException(status_code=401, detail="Invalid authentication credentials")
-        token_data = TokenData(username=username)
+        token_data = TokenData(username=username, user_id=user_id)
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+    except Exception as e:  # 모든 다른 예외를 처리
+        print(f"예상치 못한 오류가 발생했습니다: {e}")
+    
     user = get_user(db, username=token_data.username)
-    if user is None:
+    if user is None or user.id != token_data.user_id:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
     return user
-
+ 
 
 
 # 정적 파일 디렉토리 설정 (HTML, CSS, JS, 이미지 등)
@@ -350,6 +373,7 @@ async def check_login(
         return {"isLoggedIn": False}
     
  
+
 @app.post("/search-request")
 async def search_movies(
     title: Optional[str] = Form(None),
@@ -362,7 +386,9 @@ async def search_movies(
 
     # 로그인 여부 확인 및 user 정보 가져오기
     user = get_user_from_token(access_token, db)  # access_token으로 사용자의 정보를 가져오는 함수
-    
+    if not user:
+        raise HTTPException(status_code=401, detail="로그인이 필요합니다.")  # 로그인되지 않으면 401 에러
+
     # 외부 API 요청 파라미터 구성
     external_api_params = {
         "key": KOBIS_API_KEY,
@@ -381,43 +407,30 @@ async def search_movies(
     url = f"{KOBIS_BASE_URL}?{requests.compat.urlencode(external_api_params)}"
     print(f"Requesting URL: {url}")
 
-    # 외부 API 호출
-    response = requests.get(url)
-    data = response.json()
+    try:
+        # 외부 API 호출
+        response = requests.get(url)
+        response.raise_for_status()  # 응답이 정상적인지 확인 (5xx, 4xx 오류 발생 시 예외 처리)
+        data = response.json()
+    except requests.RequestException as e:
+        raise HTTPException(status_code=500, detail=f"API 요청 중 오류 발생: {str(e)}")  # API 요청 중 오류 발생 시 처리
 
     # 외부 API 응답에서 영화 목록 추출
     movie_list = data.get('movieListResult', {}).get('movieList', [])
 
-    if movie_list:
-        first_movie = movie_list[0]
-        
-        # 첫 번째 영화 정보
-        movie_title = first_movie.get('movieNm')
-        director = first_movie.get('directorNm')
-        actor = first_movie.get('peopleNm')
-        nation = first_movie.get('repNationCd')
-        
-        # 사용자의 DB에 영화 정보 저장
-        user_fav = UserFav(
-            movie_title=movie_title,
-            director=director,
-            actor=actor,
-            nation=nation,
-            user_id=user.id # 로그인된 사용자의 id (현재 예시로 1 사용)
-        )
-        db.add(user_fav)
-        db.commit()
-        db.refresh(user_fav)
-        
-        # 영화 목록 반환
-        return JSONResponse(content=movie_list)
-    
-    return JSONResponse(status_code=404, content={"message": "영화가 없습니다"})
+    if not movie_list:
+        return JSONResponse(status_code=200, content={"message": "영화가 없습니다."})
+
+    return JSONResponse(status_code=200, content={"movie_list": movie_list})
 
 
+
+
+
+# 모달창 열어서 영화 상세 정보 불러오기 
 MOVIE_DETAIL_URL =  "http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieInfo.json" 
     
-@app.get("/movie/{movieCd}")
+@app.get("/details/{movieCd}")
 def get_movie_details(movieCd: str):
     params = {
         "key": KOBIS_API_KEY,
@@ -437,7 +450,58 @@ def get_movie_details(movieCd: str):
     return response.json()
 
 
+@app.post("/save/{movieCd}")
+async def save_movie(
+    movieCd: str,
+    movie: MovieSaveRequest, 
+    db: Session = Depends(get_db),
+    # user: User = Depends(get_current_user),
+    access_token: Optional[str] = Cookie(None),  # 쿠키에서 access_token을 받음
+    ):
+    try:
+        user = get_user_from_token(access_token, db)
+        print("##########################################################save movie")
+        print("received data: ", movie.dict())
+        
+        # UserFav 객체 생성
+        user_fav = UserFav(
+            user_id=user.id,  # 사용자 ID (세션 또는 인증을 통해 가져와야 함)
+            code=movie.code,  # 영화 코드
+            title=movie.title,  # 영화 제목
+            director=movie.director,  # 감독 (리스트로 저장)
+            actor=movie.actor,  # 배우 (리스트로 저장)
+            genre=movie.genre,  # 장르 (리스트로 저장)
+            nation=movie.nation,  # 국가 (리스트로 저장)
+        )
+        print("##########################################################user_fav")
+        db.add(user_fav)  # DB에 추가
+        print("##########################################################1")
+        db.commit()  # 커밋
+        print("##########################################################22222")
+        db.refresh(user_fav)  # 새로 추가된 데이터 반영
+        print("##########################################################svt forever")
+        
+        
+        return {"message": "영화 정보가 저장되었습니다.", "movie_code": movieCd}
+    
+    except Exception as e:
+        db.rollback()  # 오류 발생 시 롤백
+        raise HTTPException(status_code=500, detail=f"오류 발생: {str(e)}")
 
+
+
+# class UserFav(Base):
+#     __tablename__ = 'user_fav'
+    
+#     user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)  # ForeignKey and primary_key order corrected
+#     code = Column(Integer)  # Movie code added
+#     title = Column(String(255))
+#     director = Column(ARRAY(String))  # Array of strings for director
+#     actor = Column(ARRAY(String))  # Array of strings for actor
+#     genre = Column(ARRAY(String))  # Array of strings for genre
+#     nation = Column(ARRAY(String))  # Array of strings for nation
+
+#     user = relationship("User", back_populates="favorites")
 
 
 
