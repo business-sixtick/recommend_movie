@@ -58,10 +58,10 @@
 <body>
 
     <div class="p-5 mb-5 text-center</> bg-light dynamic-content">
-        <h1 class="mb-3">My Blog</h1>
+        <!-- <h1 class="mb-3">My Blog</h1> -->
         <h1 class="mb-3">
             {% if username %}
-            {{ username }}님, 블로그에 오신 것을 환영합니다
+            {{ username }}님, 환영합니다
             {% else %}
             로그인을 해주세요
             {% endif %}
@@ -87,31 +87,47 @@
         <!-- <input class="form-control" id="searchTitle" placeholder="제목"> -->
         <h1>영화 검색</h1>
         <div class="search-container">
+
             <div class="detail-search-container">
                 <div class="search-item">
                     <label for="title-query">Title</label>
-                    <input class="form-control" type="text" id="title-query">
+                    <input class="form-control search-input" type="text" id="title-query">
                 </div>
 
                 <div class="search-item">
-                    <label for="actor-query">Actor</label>
-                    <input class="form-control" type="text" id="actor-query">
+                    <label for="actor-query">Actor인데 감독도 검색 가능</label>
+                    <input class="form-control search-input" type="text" id="actor-query">
                 </div>
 
                 <div class="search-item">
                     <label for="director-query">Director</label>
-                    <input class="form-control" type="text" id="director-query">
+                    <input class="form-control search-input" type="text" id="director-query">
                 </div>
 
                 <div class="search-item">
                     <label for="nation-query">Nation</label>
-                    <input class="form-control" type="text" id="nation-query" readonly data-toggle="modal"
+                    <input class="form-control search-input" type="text" id="nation-query" readonly data-toggle="modal"
                         data-target="#nationModal">
+                </div>
+
+                <div class="search-item">
+                    <label for="llm-query">llm 모델한테 문장으로 질문</label>
+                    <input class="form-control search-input" type="text" id="llm-query">
+                </div>
+
+                <div class="search-item">
+                    <small>
+                        질문 튜토리얼<br>
+                        제목: ~라는 이름의, 영화 ~<br>
+                        배우: ~가 출연하다<br>
+                        감독: ~가 연출하다, 감독하다<br>
+                        국가: ~ 나라 영화<br>
+                    </small>
                 </div>
             </div>
         </div>
         <button class="btn btn-primary btn-search" id="search-button">검색</button>
-        <!-- <button class="btn btn-secondary btn-search" onclick="searchMovies()">초기화</button> -->
+        <button class="btn btn-secondary btn-search" id="reset-button">초기화</button>
     </div>
 
     <div id="loading" class="loading" style="display:none;">검색 중...</div>
@@ -227,6 +243,17 @@
 
 
     <script>
+        // 초기화 버튼 클릭 시 검색창들 초기화
+        document.getElementById('reset-button').addEventListener('click', function() {
+            // 각 input 필드를 비웁니다.
+            document.getElementById('title-query').value = '';
+            document.getElementById('actor-query').value = '';
+            document.getElementById('director-query').value = '';
+            document.getElementById('nation-query').value = '';
+            document.getElementById('llm-query').value = '';
+        });
+
+
         // Open Modal
         document.getElementById('openModal')?.addEventListener('click', () => {
             // ?.addEventListener: 버튼이 존재하면 이벤트를 실행하고
@@ -389,6 +416,18 @@
                 // 검색 함수를 부른다 
                 search();
             });
+
+            const searchInputs = document.querySelectorAll('.search-input');
+
+            // 클래스가 search input인 모든 클래스에 각각 이벤트가 걸린다 
+            searchInputs.forEach(input => {
+                input.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();  // 폼의 기본 동작인 페이지 새로 고침 방지
+                        search();  // 검색 함수 호출
+                    }
+                });
+            });
         });
 
 
@@ -401,20 +440,22 @@
             const actor = document.getElementById('actor-query').value;
             const director = document.getElementById('director-query').value;
             const nation = document.querySelector('.nation-radio:checked') ? document.querySelector('.nation-radio:checked').id : null;
+            const llm = document.getElementById('llm-query').value;
 
             // API 요청을 위한 데이터 구성
             const formData = {
                 title: title,
                 actor: actor,
                 director: director,
-                nation: nation
+                nation: nation,
+                llm: llm
             };
-            console.log('document.cookie : ' , document.cookie);
+            // console.log('document.cookie : ' , document.cookie);
 
             // 서버에 로그인 상태 확인 요청
             $.ajax({
                 url: '/check-login',  // 서버에서 로그인 상태를 확인하는 엔드포인트
-                method: 'GET',
+                method: 'POST',
                 success: function (response) {
                     if (response.isLoggedIn) {
                         // 로그인된 상태라면, search 요청
@@ -423,7 +464,13 @@
                             method: 'POST',
                             data: formData,
                             success: function (response) {
-                                displayResults(response.movie_list); // 서버에서 받은 영화 목록을 표시
+                                if (response.actor_list) {
+                                    displayActorResults(response.actor_list);
+                                } else if (response.movie_list) {
+                                    displayResults(response.movie_list);
+                                } else if (response.llmAnswer) {
+                                    fetchLlmAnswer(response.llmAnswer)
+                                }
                             },
                             error: function (xhr, status, error) {
                                 console.error('API 호출 실패:', error);
@@ -437,6 +484,23 @@
                 }
             });
         }
+
+        function fetchLlmAnswer(querys) {
+        // 사용자 입력 값 가져오기
+            const resultsContainer = document.getElementById('movie-list');
+            resultsContainer.innerHTML = ''; // 기존 결과 초기화
+
+            if (querys.length === 0) {
+                resultsContainer.innerHTML = '<p>모델이 답을 안 해주네요.</p>';
+            }  else {
+                const query = querys; // querys가 하나의 값이라면 그대로 사용
+                const queryHTML = `
+                    <p><strong>answer:</strong> ${query}</p>
+                `;
+                resultsContainer.innerHTML = queryHTML;
+            }
+        }
+
 
         // 영화 결과를 화면에 표시하는 함수
         function displayResults(movies) {
@@ -471,24 +535,53 @@
             }
         }
 
+        // 배우 결과를 화면에 표시하는 함수
+        function displayActorResults(actorData) {
+            const resultsContainer = document.getElementById('movie-list');
+            resultsContainer.innerHTML = ''; // 기존 결과 초기화
 
-   
-        
+            if (actorData.length === 0) {
+                resultsContainer.innerHTML = '<p>배우를 찾을 수 없습니다.</p>';
+            } else {
+                actorData.forEach(function (actor) {
+                    // '배우' 또는 '감독'만 출력하도록 조건 추가
+                    if (actor.repRoleNm === '배우' || actor.repRoleNm === '감독') {
+                        const movieTitles = actor.filmoNames.split("|").join(",");
+                        const actorHTML = `
+                            <div class="actor-list" data-actorCd="${actor.peopleCd}">
+                                <h3>${actor.peopleNm} (${actor.peopleNmEn})</h3>
+                                <p><strong>영화인 코드:</strong> ${actor.peopleCd}</p>
+                                <p><strong>분야:</strong> ${actor.repRoleNm}</p>
+                                <p><strong>참여 영화:</strong> ${movieTitles}</p>
+                            </div>
+                        `;
+                        resultsContainer.innerHTML += actorHTML;
+                    }
+                });
+            }
+        }
 
-// 쿠키에서 access_token 값을 가져오는 함수
-function getAccessTokenFromCookie() {
-    // 모든 쿠키 문자열을 가져옵니다.
-    const cookies = document.cookie;
 
-    // 'access_token=' 뒤의 값을 추출하는 정규식
-    const match = cookies.match(/access_token=([^;]+)/);
 
-    // match가 있을 경우 토큰 값을 반환하고, 없으면 null 반환
-    return match ? match[1] : null;
-}
 
-// 사용 예시
-const accessToken = getAccessTokenFromCookie();
+
+
+
+
+        // 쿠키에서 access_token 값을 가져오는 함수
+        function getAccessTokenFromCookie() {
+            // 모든 쿠키 문자열을 가져옵니다.
+            const cookies = document.cookie;
+
+            // 'access_token=' 뒤의 값을 추출하는 정규식
+            const match = cookies.match(/access_token=([^;]+)/);
+
+            // match가 있을 경우 토큰 값을 반환하고, 없으면 null 반환
+            return match ? match[1] : null;
+        }
+
+        // 사용 예시
+        const accessToken = getAccessTokenFromCookie();
 
         $(document).ready(function () {
             $(document).on('click', '.movie-list h3', function () {
@@ -542,7 +635,7 @@ const accessToken = getAccessTokenFromCookie();
                                 nation: movie.nations.map(nation => nation.nationNm).join(",") // 제작국가
                             };
 
-                            console.log(payload);
+                            // console.log(payload);
                             console.log("Payload:", JSON.stringify(payload));  // Payload 내용 확인
 
                             // `payload`를 서버로 전송
@@ -588,43 +681,5 @@ const accessToken = getAccessTokenFromCookie();
                 document.getElementById('movieDetail').style.display = 'none';
             }
         });
-
-
-
-
-
-
-        // llm 모델 테스트 
-        // function performSearch() {
-        //     const input = document.getElementById('searchCorner').value;
-        //     const url = `http://127.0.0.1:8000/search?query=${encodeURIComponent(input)}`;  // FastAPI 서버로 요청
-
-        //     // 검색한 URL을 화면에 표시
-        //     // document.getElementById('urlDisplay').innerText = `검색한 URL: ${url}`;
-
-        //     // AJAX 요청을 보내 FastAPI 서버에서 처리하도록 함
-        //     const xhr = new XMLHttpRequest();
-        //     xhr.open("GET", url, true);
-        //     xhr.onreadystatechange = function () {
-        //         if (xhr.readyState == 4 && xhr.status == 200) { // 응답 상태가 200일 때 실행
-        //             // readyState는 XMLHttpRequest 객체의 상태를 나타내며, 0에서 4까지의 값을 가질 수 있습니다
-        //             // 200같은 상태
-        //             const response = JSON.parse(xhr.responseText); // json 형태로 파싱
-        //             if (response.result) {
-        //                 document.getElementById('result').innerText = response.result;  // 외부 API의 응답을 출력
-        //             } else {
-        //                 document.getElementById('result').innerText = response.error || '알 수 없는 오류';
-        //             }
-        //         } else if (xhr.readyState == 4) {
-        //             document.getElementById('result').innerText = '요청 중 오류가 발생했습니다';
-        //         }
-        //     };
-        //     xhr.send();
-        // }
-
-        // function clearInput() {
-        //     document.getElementById('searchCorner').value = '';
-        //     document.getElementById('result').innerText = '';
-        // }
 
     </script>

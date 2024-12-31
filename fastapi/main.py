@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, Request, Form, Response, Cookie, Body
+from fastapi import FastAPI, Depends, HTTPException, Request, Form, Response, Cookie, Body, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse         
 from passlib.context import CryptContext
@@ -22,10 +22,12 @@ from urllib.parse import urlencode
 # .env 파일에서 환경 변수 로드하기
 from dotenv import load_dotenv
 import os
-from fastapi.security import OAuth2PasswordBearer
+import httpx
+from urllib.parse import quote
+# from fastapi.security import OAuth2PasswordBearer
 
-# OAuth2PasswordBearer는 '/token' 경로를 기본값으로 사용
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+# # OAuth2PasswordBearer를 사용하여 토큰을 받아오는 방식
+# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 
@@ -53,7 +55,7 @@ Base = declarative_base()
 # JWT configuration
 SECRET_KEY = "secretKey"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 300
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -77,7 +79,6 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    # 자동 증가 방식식
     username = Column(String(50), unique=True, index=True, nullable=False)
     hashed_password = Column(String(100), nullable=False)
     
@@ -86,12 +87,14 @@ class User(Base):
 class UserFav(Base):
     __tablename__ = 'user_fav'
     
+    # primary key는 고유성과 null이 될 수 없다는 조건을 가진다
+    # 그렇기에 중복된 값을 가질 수 있는 user id는 primary key가 될 수 없다 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('users.id'))  # ForeignKey and primary_key order corrected
     code = Column(String(255))  # Movie code added
     title = Column(String(255))
     director = Column(String(255))  # Array of strings for director
-    actor = Column(String(255))  # Array of strings for actor
+    actor = Column(String(500))  # Array of strings for actor
     genre = Column(String(255))  # Array of strings for genre
     nation = Column(String(255))  # Array of strings for nation
 
@@ -142,7 +145,9 @@ def authenticate_user(db, username: str, password: str):
         return False
     return user
 
-def get_current_user(token: str= Depends(oauth2_scheme), db: Session = Depends(get_db)):
+# def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def get_current_user(token: str, db: Session = Depends(get_db)):
+    # Depends는 함수에 필요한 외부 리소스나 객체를 자동으로 생성하고 주입해 주는 역할을 합니다.
     print('get_current_user####################################################')
     print(token)
     try:
@@ -303,11 +308,17 @@ async def list_page(request: Request):
 
 
 
+
+
+
+# 메인 페이지 설정 
 @app.get("/")
 async def main_page():
     print(f'main_page {datetime.now()}')
     # 단순히 static 디렉토리 안에 있는 index.html을 반환
     return FileResponse("static/index.html")
+
+
 
 
 
@@ -323,9 +334,11 @@ app.add_middleware(
     allow_headers=["*"],  # 모든 HTTP 헤더 허용
 )
 
+
 # 외부 API의 URL과 API 키
 KOBIS_API_KEY = ""
 KOBIS_BASE_URL = "http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieList.json"
+
     
 # DB 세션 생성 함수
 def get_db():
@@ -334,6 +347,7 @@ def get_db():
         yield db # 의존성 주입 시스템을 활용하여 요청이 있을 때마다 db 세션을 전달 
     finally:
         db.close()
+        
         
 # 토큰을 디코딩하여 사용자 정보 추출
 def get_user_from_token(access_token: Optional[str] = Cookie(None), db: Session = Depends(get_db)):
@@ -358,9 +372,10 @@ def get_user_from_token(access_token: Optional[str] = Cookie(None), db: Session 
         raise HTTPException(status_code=401, detail="Token has expired")
     except jwt.JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
+    # raise 사용 시 클라이언트는 500 상태 코드와 함께 오류 메세지를 받는다 
 
 
-@app.get("/check-login")
+@app.post("/check-login")
 async def check_login(
     access_token: Optional[str] = Cookie(None),
     db: Session = Depends(get_db)  # DB 세션 의존성 추가
@@ -380,6 +395,7 @@ async def search_movies(
     actor: Optional[str] = Form(None),
     director: Optional[str] = Form(None),
     nation: Optional[str] = Form(None),
+    llm: Optional[str] = Form(None),
     access_token: Optional[str] = Cookie(None),  # 쿠키에서 access_token을 받음
     db: Session = Depends(get_db)  # DB 세션 의존성 추가
 ):
@@ -389,15 +405,68 @@ async def search_movies(
     if not user:
         raise HTTPException(status_code=401, detail="로그인이 필요합니다.")  # 로그인되지 않으면 401 에러
 
-    # 외부 API 요청 파라미터 구성
+    # 배우 검색 시, 영화 검색을 하지 않고 actor 전용 API로만 처리
+    if actor:
+        actor_url = f"http://www.kobis.or.kr/kobisopenapi/webservice/rest/people/searchPeopleList.json?key={KOBIS_API_KEY}&peopleNm={actor}"
+        print(f"Requesting actor-specific URL: {actor_url}")
+        try:
+            response = requests.get(actor_url)  # actor-specific URL 요청
+            response.raise_for_status()  # 응답 오류 체크
+            actor_data = response.json()  # Actor에 대한 결과를 반환
+            
+            actor_list = actor_data.get('peopleListResult', {}).get('peopleList', [])
+            
+            return JSONResponse(status_code=200, content={"actor_list": actor_list})  # 배우 데이터 반환
+        except requests.exceptions.RequestException as e:
+            raise HTTPException(status_code=500, detail=f"배우 검색 실패: {e}")  # 배우 검색 실패 시 처리
+    
+    if llm:
+        role = (
+            "사용자가 입력한 문장을 보고 해당하는 자리에 answer를 채워 {'제목': answer, '감독': answer, '배우': answer, '국가': answer} 형식으로 정리해서 보여줘. \
+                answer에 마땅한 답이 없으면 null로 표시해줘.\
+                꼭 json 형식을 맞춰줘.\
+                문장에서 나온 단어만으로 answer를 채워."
+        )
+        
+        llm_url = f'https://sixtick.duckdns.org/llm'
+        # http의 보안 버전이 https # 서버가 https만 지원하면 http를 잘못된 요청으로 간주해 400 에러 
+        # 오류 발생할 때 변수 다 프린트해봐서 안에 들어있는 값 확인하기 
+        params = {
+            'role': role,
+            'query': llm
+        }
+        
+        print(f"Requesting URL: {llm_url}?{requests.compat.urlencode(params)}")
+        
+        # httpx를 사용하여 외부 API로 요청
+        async with httpx.AsyncClient() as client: # httpx를 사용하여 비동기 HTTP 클라이언트를 생성합니다.
+            try:
+                response = await client.get(llm_url, params=params)
+                response.raise_for_status()  # HTTP 상태 확인
+                print(response.text)
+
+                # JSON 데이터 파싱
+                response_data = response.json()  # 응답 텍스트를 JSON으로 변환
+                print(response_data)
+                llmAnswer = response_data.get('answer', "결과를 찾을 수 없습니다.")  # answer 키 추출
+                print(llmAnswer)
+                
+                return JSONResponse(content={"llmAnswer": llmAnswer}, status_code=200)  # answer만 반환
+            except httpx.HTTPStatusError as http_error:
+                print(http_error)
+                return JSONResponse(content={"error": f"HTTP Error: {http_error}"}, status_code=400)
+            except httpx.RequestError as request_error:
+                print(request_error)
+                return JSONResponse(content={"error": f"Request Error: {request_error}"}, status_code=400)
+
+    # 외부 API 요청 파라미터 구성 (배우가 아닐 경우에만 영화 검색)
     external_api_params = {
         "key": KOBIS_API_KEY,
-    }
+        "itemPerPage": 50,
+    }    
 
     if title:
         external_api_params["movieNm"] = title
-    if actor:
-        external_api_params["peopleNm"] = actor
     if director:
         external_api_params["directorNm"] = director
     if nation:
@@ -405,7 +474,7 @@ async def search_movies(
 
     # 외부 API 요청 URL 구성
     url = f"{KOBIS_BASE_URL}?{requests.compat.urlencode(external_api_params)}"
-    print(f"Requesting URL: {url}")
+    print(f"Requesting movie URL: {url}")
 
     try:
         # 외부 API 호출
@@ -427,8 +496,13 @@ async def search_movies(
 
 
 
+
+
+
+
 # 모달창 열어서 영화 상세 정보 불러오기 
 MOVIE_DETAIL_URL =  "http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieInfo.json" 
+    
     
 @app.get("/details/{movieCd}")
 def get_movie_details(movieCd: str):
@@ -463,62 +537,35 @@ async def save_movie(
         print("##########################################################save movie")
         print("received data: ", movie.dict())
         
-        # UserFav 객체 생성
-        user_fav = UserFav(
-            user_id=user.id,  # 사용자 ID (세션 또는 인증을 통해 가져와야 함)
-            code=movie.code,  # 영화 코드
-            title=movie.title,  # 영화 제목
-            director=movie.director,  # 감독 (리스트로 저장)
-            actor=movie.actor,  # 배우 (리스트로 저장)
-            genre=movie.genre,  # 장르 (리스트로 저장)
-            nation=movie.nation,  # 국가 (리스트로 저장)
-        )
-        print("##########################################################user_fav")
-        db.add(user_fav)  # DB에 추가
-        print("##########################################################1")
-        db.commit()  # 커밋
-        print("##########################################################22222")
-        db.refresh(user_fav)  # 새로 추가된 데이터 반영
-        print("##########################################################svt forever")
-        
-        
-        return {"message": "영화 정보가 저장되었습니다.", "movie_code": movieCd}
-    
+        # user_id와 code 조합 중복 체크
+        existing_fav = db.query(UserFav).filter_by(user_id=user.id, code=movie.code).first()
+
+        if existing_fav:
+            return {"message": "중복된 값이 있는데 어쩔", "user_id": user.id, "movie_code": movieCd}
+            # 중복된 값이 있을 경우 메시지를 반환하고 종료
+        else:
+            # UserFav 객체 생성
+            user_fav = UserFav(
+                user_id=user.id,  # 사용자 ID
+                code=movie.code,  # 영화 코드
+                title=movie.title,  # 영화 제목
+                director=movie.director,  # 감독 (리스트로 저장)
+                actor=movie.actor,  # 배우 (리스트로 저장)
+                genre=movie.genre,  # 장르 (리스트로 저장)
+                nation=movie.nation,  # 국가 (리스트로 저장)
+            )
+
+            print("##########################################################user_fav")
+            db.add(user_fav)  # DB에 추가
+            print("##########################################################1")
+            db.commit()  # 커밋
+            print("##########################################################22222")
+            db.refresh(user_fav)  # 새로 추가된 데이터 반영
+            print("##########################################################svt forever")
+
+            # 정상적으로 저장된 경우 메시지 반환
+            return {"message": "영화 정보가 저장되었습니다.", "movie_code": movieCd}
+
     except Exception as e:
         db.rollback()  # 오류 발생 시 롤백
         raise HTTPException(status_code=500, detail=f"오류 발생: {str(e)}")
-
-
-
-# class UserFav(Base):
-#     __tablename__ = 'user_fav'
-    
-#     user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)  # ForeignKey and primary_key order corrected
-#     code = Column(Integer)  # Movie code added
-#     title = Column(String(255))
-#     director = Column(ARRAY(String))  # Array of strings for director
-#     actor = Column(ARRAY(String))  # Array of strings for actor
-#     genre = Column(ARRAY(String))  # Array of strings for genre
-#     nation = Column(ARRAY(String))  # Array of strings for nation
-
-#     user = relationship("User", back_populates="favorites")
-
-
-
-
-
-# # 외부 API 요청을 처리하는 엔드포인트
-# @app.get("/search")
-# async def search(query: str):
-#     # 외부 API 요청 URL (예시)
-#     external_url = f"http://sixtick.duckdns.org:19821/llm?role=사용자가 질문한 내용과 관련된 영화 제목을 콤마로 구분해서 제목만 보여줘&query={query}"
-
-#     # httpx를 사용하여 외부 API로 요청
-#     async with httpx.AsyncClient() as client:
-#         try:
-#             response = await client.get(external_url)
-#             return JSONResponse(content={"result": response.text})  # 결과를 클라이언트에 반환
-#         except httpx.HTTPStatusError as http_error:
-#             return JSONResponse(content={"error": f"HTTP Error: {http_error}"}, status_code=400)
-#         except httpx.RequestError as request_error:
-#             return JSONResponse(content={"error": f"Request Error: {request_error}"}, status_code=400)
