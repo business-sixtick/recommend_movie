@@ -425,12 +425,12 @@ async def search_movies(
             "사용자가 입력한 문장을 보고 해당하는 자리에 answer를 채워 {'제목': answer, '감독': answer, '배우': answer, '국가': answer} 형식으로 정리해서 보여줘. \
                 answer에 마땅한 답이 없으면 null로 표시해줘.\
                 꼭 json 형식을 맞춰줘.\
-                문장에서 나온 단어만으로 answer를 채워."
+                문장에서 나온 단어만으로 answer를 채워.\
+                중괄호 밖에는 어떠한 단어도 작성하지마."
         )
         
         llm_url = f'https://sixtick.duckdns.org/llm'
         # http의 보안 버전이 https # 서버가 https만 지원하면 http를 잘못된 요청으로 간주해 400 에러 
-        # 오류 발생할 때 변수 다 프린트해봐서 안에 들어있는 값 확인하기 
         params = {
             'role': role,
             'query': llm
@@ -500,11 +500,32 @@ async def search_movies(
 
 
 
-# 모달창 열어서 영화 상세 정보 불러오기 
+ACTOR_DETAIL_URL = "http://www.kobis.or.kr/kobisopenapi/webservice/rest/people/searchPeopleInfo.json"
+
+# 영화인 상세정보 모달창 
+@app.get("/actorDetails/{peopleCd}")
+def get_actor_details(peopleCd: str):
+    params = {
+        "key": KOBIS_API_KEY,
+        "peopleCd": peopleCd
+    }
+    
+    request_url = f"{ACTOR_DETAIL_URL}?{urlencode(params)}"
+    print(f"Request URL: {request_url}")  # 터미널에 출력
+
+    response = requests.get(ACTOR_DETAIL_URL, params=params)
+        
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="Failed to fetch actor details")
+    
+    # API 응답 전체 데이터를 그대로 반환
+    return response.json()
+
+
 MOVIE_DETAIL_URL =  "http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieInfo.json" 
     
-    
-@app.get("/details/{movieCd}")
+# 영화 상세정보 모달창 
+@app.get("/movieDetails/{movieCd}")
 def get_movie_details(movieCd: str):
     params = {
         "key": KOBIS_API_KEY,
@@ -524,6 +545,7 @@ def get_movie_details(movieCd: str):
     return response.json()
 
 
+# 선택한 영화 데이터를 데이터베이스에 저장
 @app.post("/save/{movieCd}")
 async def save_movie(
     movieCd: str,
@@ -541,7 +563,7 @@ async def save_movie(
         existing_fav = db.query(UserFav).filter_by(user_id=user.id, code=movie.code).first()
 
         if existing_fav:
-            return {"message": "중복된 값이 있는데 어쩔", "user_id": user.id, "movie_code": movieCd}
+            return {"message": "중복된 값이 있습니다.", "user_id": user.id, "movie_code": movieCd}
             # 중복된 값이 있을 경우 메시지를 반환하고 종료
         else:
             # UserFav 객체 생성
@@ -558,10 +580,18 @@ async def save_movie(
             print("##########################################################user_fav")
             db.add(user_fav)  # DB에 추가
             print("##########################################################1")
-            db.commit()  # 커밋
-            print("##########################################################22222")
+            
+            try:
+                db.commit()
+                print("##########################################################22")
+
+            except Exception as e:
+                db.rollback()  # 트랜잭션 롤백
+                print(f"Commit failed: {e}") # 설정한 길이보다 데이터의 양이 많으면 저장 오류가 날 수 있다 >> 범위 늘리기 
+                return {"message": "데이터 저장 중 문제가 발생했습니다.", "error": str(e)}
+
             db.refresh(user_fav)  # 새로 추가된 데이터 반영
-            print("##########################################################svt forever")
+            print("##########################################################333")
 
             # 정상적으로 저장된 경우 메시지 반환
             return {"message": "영화 정보가 저장되었습니다.", "movie_code": movieCd}
@@ -569,3 +599,74 @@ async def save_movie(
     except Exception as e:
         db.rollback()  # 오류 발생 시 롤백
         raise HTTPException(status_code=500, detail=f"오류 발생: {str(e)}")
+    
+
+
+
+
+
+
+# 사용자 아이디로 선택한 영화 목록을 가져오는 API
+@app.get("/rec_movies")
+async def rec_movies(
+    db: Session = Depends(get_db),
+    access_token: Optional[str] = Cookie(None),  # 쿠키에서 access_token을 받음
+):
+    try:
+        # access_token으로 사용자 정보 가져오기
+        user = get_user_from_token(access_token, db)
+        if not user:
+            raise HTTPException(status_code=401, detail="Invalid or missing access token.")
+        
+        # 사용자가 고른 영화 목록을 가져오기
+        user_fav_movies = db.query(UserFav).filter(UserFav.user_id == user.id).all()
+        
+        # 영화 코드만 추출해서 리스트로 반환
+        movie_codes = [movie.code for movie in user_fav_movies]
+        print(movie_codes)
+        
+        query = movie_codes
+        role = (
+            "사용자가 입력한 리스트에서 5개만 뽑아서 리스트 형태로 보여줘"
+        )
+        
+        rec_url = f'https://sixtick.duckdns.org/llm'
+        # http의 보안 버전이 https # 서버가 https만 지원하면 http를 잘못된 요청으로 간주해 400 에러 
+        params = {
+            'role': role,
+            'query': str(query)
+        }
+        
+        print(f"Requesting URL: {rec_url}?{requests.compat.urlencode(params)}")
+        
+        # httpx를 사용하여 외부 API로 요청
+        async with httpx.AsyncClient() as client: # httpx를 사용하여 비동기 HTTP 클라이언트를 생성합니다.
+            try:
+                print('============================================')
+                response = await client.get(rec_url, params=params)
+                response.raise_for_status()  # HTTP 상태 확인
+                print('============================================')
+                print(response.text)
+                print()
+
+                # JSON 데이터 파싱
+                response_data = response.json()  # 응답 텍스트를 JSON으로 변환
+                print(response_data)
+                print()
+                rec_answer = response_data.get('answer', "결과를 찾을 수 없습니다.")  # answer 키 추출
+                print(f"rec list: {rec_answer}")
+                print()
+                
+            except httpx.HTTPStatusError as http_error:
+                print(http_error)
+                return JSONResponse(content={"error": f"HTTP Error: {http_error}"}, status_code=400)
+            except httpx.RequestError as request_error:
+                print(request_error)
+                return JSONResponse(content={"error": f"Request Error: {request_error}"}, status_code=400)
+        
+        return {"movie_codes": ", ".join(movie_codes)}  # 콤마로 구분된 영화 코드 반환
+    
+
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error occurred: {str(e)}")
