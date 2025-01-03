@@ -24,6 +24,7 @@ from dotenv import load_dotenv
 import os
 import httpx
 from urllib.parse import quote
+import re
 # from fastapi.security import OAuth2PasswordBearer
 
 # # OAuth2PasswordBearer를 사용하여 토큰을 받아오는 방식
@@ -556,7 +557,6 @@ async def save_movie(
     ):
     try:
         user = get_user_from_token(access_token, db)
-        print("##########################################################save movie")
         print("received data: ", movie.dict())
         
         # user_id와 code 조합 중복 체크
@@ -577,13 +577,10 @@ async def save_movie(
                 nation=movie.nation,  # 국가 (리스트로 저장)
             )
 
-            print("##########################################################user_fav")
             db.add(user_fav)  # DB에 추가
-            print("##########################################################1")
             
             try:
                 db.commit()
-                print("##########################################################22")
 
             except Exception as e:
                 db.rollback()  # 트랜잭션 롤백
@@ -591,7 +588,6 @@ async def save_movie(
                 return {"message": "데이터 저장 중 문제가 발생했습니다.", "error": str(e)}
 
             db.refresh(user_fav)  # 새로 추가된 데이터 반영
-            print("##########################################################333")
 
             # 정상적으로 저장된 경우 메시지 반환
             return {"message": "영화 정보가 저장되었습니다.", "movie_code": movieCd}
@@ -606,7 +602,7 @@ async def save_movie(
 
 
 
-# 사용자 아이디로 선택한 영화 목록을 가져오는 API
+# 사용자 아이디로 추천 영화 목록을 가져오는 API
 @app.get("/rec_movies")
 async def rec_movies(
     db: Session = Depends(get_db),
@@ -621,41 +617,73 @@ async def rec_movies(
         # 사용자가 고른 영화 목록을 가져오기
         user_fav_movies = db.query(UserFav).filter(UserFav.user_id == user.id).all()
         
-        # 영화 코드만 추출해서 리스트로 반환
+        movie_titles = [movie.title for movie in user_fav_movies]
         movie_codes = [movie.code for movie in user_fav_movies]
+        print(movie_titles)        
         print(movie_codes)
+        print()
         
-        query = movie_codes
+        query = movie_titles
         role = (
-            "사용자가 입력한 리스트에서 5개만 뽑아서 리스트 형태로 보여줘"
+            "사용자가 입력한 리스트에서 랜덤으로 무조건 5개를 뽑아서 글자 변경 없이 그대로 가져와서 대괄호 안에 넣어서 리스트 형태로 보여줘.\
+                여기서 1개의 기준은 따옴표 안에 있는 것이야."
         )
         
         rec_url = f'https://sixtick.duckdns.org/llm'
-        # http의 보안 버전이 https # 서버가 https만 지원하면 http를 잘못된 요청으로 간주해 400 에러 
         params = {
             'role': role,
-            'query': str(query)
+            'query': str(query) # 전송할 수 있도록 변환하는 과정인 직렬화 # 파이썬 객체를 문자열로 변환 
         }
         
         print(f"Requesting URL: {rec_url}?{requests.compat.urlencode(params)}")
+        # requests.compat.urlencode는 Python 2와 3에서 URL 인코딩을 다르게 처리할 수 있기 때문에, 두 버전에서 모두 동일하게 작동하도록 하기 위해 사용됩니다
+        print()
         
         # httpx를 사용하여 외부 API로 요청
         async with httpx.AsyncClient() as client: # httpx를 사용하여 비동기 HTTP 클라이언트를 생성합니다.
             try:
-                print('============================================')
                 response = await client.get(rec_url, params=params)
                 response.raise_for_status()  # HTTP 상태 확인
-                print('============================================')
                 print(response.text)
                 print()
 
                 # JSON 데이터 파싱
                 response_data = response.json()  # 응답 텍스트를 JSON으로 변환
-                print(response_data)
+                # print(response_data)
                 print()
                 rec_answer = response_data.get('answer', "결과를 찾을 수 없습니다.")  # answer 키 추출
-                print(f"rec list: {rec_answer}")
+                print(f"rec_answer: {rec_answer}")
                 print()
+                
+                # 리스트 부분만 추출 (정규표현식 사용)
+                list_match = re.search(r"\[.*?\]", rec_answer)  # 대괄호 포함 문자열 찾기 
+                if list_match:
+                    titles_to_list = eval(list_match.group())  # 문자열을 리스트로 변환
+                    print(f'titles_to_list: {titles_to_list}')
+                    print()
+                    
+                    rec_urls = []  # 여러 개의 URL을 담을 리스트
+
+                    for title in titles_to_list:
+                        if title in movie_titles:  # 제목이 movie_titles에 있는지 확인
+                            index = movie_titles.index(title)  # 제목의 인덱스를 찾음
+                            movie_code = movie_codes[index]  # 해당 제목에 맞는 movie_code를 가져옴
+
+                            # URL 생성
+                            params = {
+                                "key": KOBIS_API_KEY,
+                                "movieCd": movie_code
+                            }
+                            rec_url = f"{MOVIE_DETAIL_URL}?{urlencode(params)}"
+                            print(f"Generated URL for movie '{title}': {rec_url}")  # URL 확인용 출력
+
+                            # movie_code와 일치하는 title을 클라이언트에게 표시 (console.log)
+                            print(f"Movie Code: {movie_code} corresponds to Title: {title}")
+
+                            rec_urls.append(rec_url)  # 생성된 URL을 리스트에 추가
+
+                else:
+                    print("리스트를 찾을 수 없습니다.")
                 
             except httpx.HTTPStatusError as http_error:
                 print(http_error)
@@ -664,9 +692,9 @@ async def rec_movies(
                 print(request_error)
                 return JSONResponse(content={"error": f"Request Error: {request_error}"}, status_code=400)
         
-        return {"movie_codes": ", ".join(movie_codes)}  # 콤마로 구분된 영화 코드 반환
-    
-
-    
+        # 여러 개의 URL을 반환
+        print(f"rec_urls: {rec_urls}")  # 반환 직전에 출력 확인
+        return {"rec_urls": rec_urls}  # rec_urls 리스트 반환
+            
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error occurred: {str(e)}")
