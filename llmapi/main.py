@@ -2,7 +2,7 @@ from fastapi import FastAPI    # FastAPI 는 Starlette 를 직접 상속하는 �
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
-
+from pydantic import BaseModel
 
 from langchain.chains import LLMChain
 from langchain import PromptTemplate
@@ -62,14 +62,17 @@ async def read_llm(role: str ="사용자가 제시하는 단어에 연관이 깊
     answer = chain.run({"role":role, "query": query})
     return {"role": role, "query": query, "answer": answer}
 
+
+
+class LLMRequest(BaseModel):
+    role: str = "사용자가 제시하는 단어에 연관이 깊은 영화 제목을 콤마로 구분해서 제목만 나열해줘."
+    query: str = "정우성"
+
 @app.post("/llmpost")
-async def post_llm(role: str ="사용자가 제시하는 단어에 연관이 깊은 영화 제목을 콤마로 구분해서 제목만 나열해줘.", query: str = "정우성"):
-    """
-    ex)
-    /llm?role=영화박사&query=정우성
-    """
-    answer = chain.run({"role":role, "query": query})
-    return {"role": role, "query": query, "answer": answer}
+async def post_llm(request: LLMRequest):
+    answer = chain.run({"role": request.role, "query": request.query})
+    return {"role": request.role, "query": request.query, "answer": answer}
+
 
 # "static" 디렉토리를 정적 파일 제공 경로로 설정
 app.mount("/", StaticFiles(directory="static", html=True), name="static")   # / 를 라우팅 할때 다른것들과 충돌 함. 맨 아래로 이동했음. 또는 경로를 /name 명확히 할 수 도 있음. 
