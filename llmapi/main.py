@@ -1,7 +1,7 @@
-from app import FastAPI    # FastAPI 는 Starlette 를 직접 상속하는 클래스임.
-from app.staticfiles import StaticFiles
+from fastapi import FastAPI    # FastAPI 는 Starlette 를 직접 상속하는 클래스임.
+from fastapi.staticfiles import StaticFiles
 import uvicorn
-from app.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 
 
 from langchain.chains import LLMChain
