@@ -63,7 +63,7 @@ async def read_llm(role: str ="사용자가 제시하는 단어에 연관이 깊
     return {"role": role, "query": query, "answer": answer}
 
 @app.post("/llm")
-async def read_llm(role: str ="사용자가 제시하는 단어에 연관이 깊은 영화 제목을 콤마로 구분해서 제목만 나열해줘.", query: str = "정우성"):
+async def post_llm(role: str ="사용자가 제시하는 단어에 연관이 깊은 영화 제목을 콤마로 구분해서 제목만 나열해줘.", query: str = "정우성"):
     """
     ex)
     /llm?role=영화박사&query=정우성
