@@ -25,6 +25,7 @@ import os
 import httpx
 from urllib.parse import quote
 import re
+from typing import List
 # from fastapi.security import OAuth2PasswordBearer
 
 # # OAuth2PasswordBearer를 사용하여 토큰을 받아오는 방식
@@ -101,7 +102,7 @@ class UserFav(Base):
 
     user = relationship("User", back_populates="favorites")
 
-class recFav(Base):
+class RecFav(Base):
     __tablename__ = 'rec_fav'
     
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
@@ -156,7 +157,7 @@ def authenticate_user(db, username: str, password: str):
 # def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
 def get_current_user(token: str, db: Session = Depends(get_db)):
     # Depends는 함수에 필요한 외부 리소스나 객체를 자동으로 생성하고 주입해 주는 역할을 합니다.
-    print('get_current_user####################################################')
+    print('get_current_user')
     print(token)
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -620,7 +621,7 @@ async def fetch_movie_recommendations(user_id: int, db: Session):
                         movie_code_list.append(movie_code)
                         
                 try: 
-                    rec_fav = recFav(
+                    rec_fav = RecFav(
                         user_id = user_id,
                         movie_code = str(movie_code_list)
                     )
@@ -631,13 +632,8 @@ async def fetch_movie_recommendations(user_id: int, db: Session):
                 
                 except Exception as e:
                     print(f"디비에 저장 안 됨: {e}")
-
-                        # 처리 로직 추가 (예: 추천 목록에 영화 코드 추가)
-                        # rec_urls.append(f'https://someurl.com/{movie_code}')
                 
-                # print(f"Recommendation URLs: {rec_urls}")
-                
-    #             class recFav(Base):
+    # class RecFav(Base):
     # __tablename__ = 'rec_fav'
     
     # id = Column(Integer, primary_key=True, index=True, autoincrement=True)
@@ -648,6 +644,120 @@ async def fetch_movie_recommendations(user_id: int, db: Session):
             print(f"An error occurred: {exc}")
 
 
+
+            
+            
+# # 백그라운드에서 실행할 함수
+# async def fetch_movie_recommendations(user_id: int, db: Session):
+#     # 사용자가 고른 영화 목록을 가져오기
+#     user_fav_movies = db.query(UserFav).filter(UserFav.user_id == user_id).order_by(UserFav.id.desc()).limit(20).all()
+    
+#     movie_titles = [movie.title for movie in user_fav_movies]
+#     movie_codes = [movie.code for movie in user_fav_movies]
+#     print(movie_titles)        
+#     print(movie_codes)
+#     print()
+
+#     # 리스트에서 5개 무작위로 선택
+#     query = str(movie_titles)
+#     role = (
+#         "사용자가 입력한 리스트에서 연관성이 높은 제목 5개를 변경 없이 콤마로 구분해서 리스트 코드 형태로 보여줘. "
+#         "여기서 1개의 기준은 따옴표 안에 있는 것이야. 꼭 응답 포멧을 ['제목','제목','제목','제목','제목'] 으로 해줘"
+#     )
+    
+#     rec_url = f'https://sixtick.duckdns.org/llmpost'
+#     params = {
+#         'role': role,
+#         'query': query
+#     }
+
+#     print(f"Requesting URL: {rec_url}?{requests.compat.urlencode(params)}")
+#     print()
+
+#     # httpx를 사용하여 외부 API로 요청
+#     async with httpx.AsyncClient() as client:
+#         try:
+#             response = await client.post(rec_url, json=params)
+#             response.raise_for_status()  # HTTP 상태 확인
+#             print(response.text)
+#             print()
+
+#             # JSON 데이터 파싱
+#             response_data = response.json()
+#             print()
+
+#             rec_answer = response_data.get('answer', "결과를 찾을 수 없습니다.")
+#             # print(f"rec_answer: {rec_answer}")
+#             # print()
+
+#             # 리스트 부분만 추출 (정규표현식 사용)
+#             list_match = re.search(r"\[.*?\]", rec_answer)  # 대괄호 포함 문자열 찾기 
+#             if list_match:
+#                 titles_to_list = eval(list_match.group())  # 문자열을 리스트로 변환
+#                 print(f'titles_to_list: {titles_to_list}')
+#                 print()
+
+#                 movie_code_list = []
+
+#                 for title in titles_to_list:
+#                     print("-------------------------------")
+#                     if title in movie_titles:
+#                         index = movie_titles.index(title)  # 제목의 인덱스를 찾음
+#                         movie_code = movie_codes[index]  # 해당 제목에 맞는 movie_code를 가져옴
+#                         print(movie_code)
+#                         movie_code_list.append(movie_code)
+
+#                 # 영화 코드 목록을 담은 URL을 만들어서 클라이언트에게 전달할 수 있도록 처리
+#                 rec_urls = []  # 추천 URL 리스트
+
+#                 # 영화 코드 리스트로 외부 API를 통해 영화 정보 가져오기
+#                 for movie_code in movie_code_list:
+#                     api_url = "http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieInfo.json"
+#                     params = {
+#                         'key': KOBIS_API_KEY,  # API 키
+#                         'movieCd': movie_code  # 영화 코드
+#                     }
+
+#                     try:
+#                         # 외부 API 요청
+#                         async with httpx.AsyncClient() as client:
+#                             response = await client.get(api_url, params=params)
+#                             if response.status_code == 200:
+#                                 data = response.json()  # JSON 형식으로 응답 받기
+#                                 rec_five_list = data.get('movieInfoList', {}).get('movieInfo', {})
+                                
+#                                 return JSONResponse(status_code=200, content={"rec_five_list": rec_five_list})
+#                             else:
+#                                 print(f"API 요청 실패: {response.status_code}")
+#                     except Exception as e:
+#                         print(f"API 요청 오류: {e}")
+
+#                 try:
+#                     # 추천 영화 정보를 DB에 저장
+#                     rec_fav = RecFav(
+#                         user_id=user_id,
+#                         movie_code=str(movie_code_list)
+#                     )
+#                     db.add(rec_fav)  # DB에 추가
+#                     db.commit()
+#                     db.refresh(rec_fav)
+#                     print("=======================================complete")
+#                 except Exception as e:
+#                     print(f"fail saving: {e}")
+
+#             # 클라이언트에게 영화 정보를 전달하기 위해 background_tasks를 사용하여 UI 갱신
+#             send_movie_recommendations_to_client(rec_urls)
+
+#         except httpx.RequestError as exc:
+#             print(f"An error occurred: {exc}")
+
+# # 클라이언트로 영화 추천 정보를 전달하는 함수
+# async def send_movie_recommendations_to_client(rec_urls: List[dict]):
+#     # 클라이언트로 영화 정보를 보내는 예시 (여기서는 웹소켓이나 다른 메커니즘을 사용할 수 있음)
+#     # 예시: 클라이언트에 정보를 보내는 코드 (실제 구현 필요)
+#     print("추천 영화 정보:", rec_urls)
+
+
 # 선택한 영화 데이터를 데이터베이스에 저장
 @app.post("/save/{movieCd}")
 async def save_movie(
@@ -655,7 +765,6 @@ async def save_movie(
     movieCd: str,
     movie: MovieSaveRequest, 
     db: Session = Depends(get_db),
-    # user: User = Depends(get_current_user),
     access_token: Optional[str] = Cookie(None),  # 쿠키에서 access_token을 받음
     ):
     try:
@@ -705,6 +814,42 @@ async def save_movie(
         db.rollback()  # 오류 발생 시 롤백
         raise HTTPException(status_code=500, detail=f"오류 발생: {str(e)}")
     
+    
+    
+    
+    
+    
+@app.post("/selected_movies")
+async def selected_movies(
+    # background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    access_token: Optional[str] = Cookie(None),  # 쿠키에서 access_token을 받음
+    ):
+        user = get_user_from_token(access_token, db)
+        
+        # user_id와 code 조합 중복 체크
+        rec_fav = db.query(RecFav).filter_by(user_id=user.id).order_by(RecFav.id.desc()).first()
+        print(f'========================================={rec_fav.movie_code}')
+        rec_fav_list = eval(rec_fav.movie_code)
+        print(f'========================================={type(rec_fav_list)}')
+        
+        movie_list = []
+        for fav in rec_fav_list:
+            print(fav)
+            
+            movie= db.query(UserFav).filter_by(code=fav).first()
+            print(movie.title)
+            movie_list.append(movie)
+
+        
+        return movie_list
+    
+    
+
+    
+
+
+
 
 
 

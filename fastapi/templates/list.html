@@ -21,7 +21,8 @@
     }
 
     .search-item {
-        display: flex;
+        display: none;
+        /*화면에서 안 보이게 하기*/
         flex-direction: column;
         /* 라벨과 입력 필드를 위아래로 배치 */
         flex: 1 1 calc(50% - 20px);
@@ -42,8 +43,10 @@
     }
 
     .modal-dialog {
-        max-width: none; /* 기본 max-width 제한을 제거 */
-        width: auto; /* 내용에 맞게 자동으로 크기 조정 */
+        max-width: none;
+        /* 기본 max-width 제한을 제거 */
+        width: auto;
+        /* 내용에 맞게 자동으로 크기 조정 */
     }
 
     .modal-content {
@@ -52,16 +55,21 @@
         width: auto;
         padding: 20px;
         box-sizing: border-box;
-        max-height: 90vh; /* 화면 높이의 90%로 제한 */
+        max-height: 90vh;
+        /* 화면 높이의 90%로 제한 */
     }
 
-    .modal-header, .modal-footer{
-        flex-shrink: 0; /* 이들 요소가 축소되지 않도록 설정 */
+    .modal-header,
+    .modal-footer {
+        flex-shrink: 0;
+        /* 이들 요소가 축소되지 않도록 설정 */
     }
 
     .modal-body {
-        flex-grow: 1; /* body 영역은 가능한 모든 공간을 차지하도록 설정 */
-        overflow-y: auto; /* 내용물이 넘칠 경우 스크롤바 추가 */
+        flex-grow: 1;
+        /* body 영역은 가능한 모든 공간을 차지하도록 설정 */
+        overflow-y: auto;
+        /* 내용물이 넘칠 경우 스크롤바 추가 */
     }
 
     /* 필모그래피 그리드 설정 */
@@ -104,16 +112,66 @@
     }
 
     .input-group .btn {
-            border-top-left-radius: 0;
-            border-bottom-left-radius: 0;
-        }
-
-    .input-group {
-        border-radius: .375rem; /* 둥근 테두리 */
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
     }
 
-    
-        
+    .input-group {
+        border-radius: .375rem;
+        /* 둥근 테두리 */
+    }
+
+    .fixed-bottom {
+        position: fixed;
+        bottom: 0;
+        z-index: 100;
+        width: 100%;
+    }
+
+    #rec-five-list{
+        display: flex;
+        align-items: stretch;
+        flex-direction: row;
+        gap: 10px;  /* 항목들 간의 간격을 동일하게 설정 */
+        margin: 10px;  /* rec-film-list와 film-item 간의 간격 설정 */
+    }
+
+    .rec-film-item {
+        flex: 1 1 calc(20% - 10px);  /* 5개씩 나누어 가로로 배치, 간격 고려 */
+        margin: 0;
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        background-color: #f5f5f5;
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+        overflow: hidden;  /* 넘치는 내용 숨김 */
+        height: 100px;  /* 고정된 높이 */
+        text-align: center;
+        box-sizing: border-box;
+    }
+
+    .movie-top-list, .actor-top-list{
+        display: flex;
+        align-items: stretch;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 10px;  /* 항목들 간의 간격을 동일하게 설정 */
+        margin: 10px;  /* rec-film-list와 film-item 간의 간격 설정 */
+    }
+
+    .movie-list, .actor-list{
+        flex: 1 1 calc(20% - 10px);  /* 5개씩 나누어 가로로 배치, 간격 고려 */
+        margin: 0;
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        background-color: #f5f5f5;
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+        overflow: hidden;  /* 넘치는 내용 숨김 */
+        height: 100px;  /* 고정된 높이 */
+        text-align: center;
+        box-sizing: border-box;
+    }
+
+
 </style>
 
 <head>
@@ -147,7 +205,8 @@
         <div class="mt-4 d-flex align-items-center justify-content-center">
             <h3>영화 검색</h3>
             <div class="input-group" style="width: 70%;">
-                <input class="form-control search-input" type="text" id="llm-query" placeholder="문장으로 검색해 궁금한 영화를 찾아보세요">
+                <input class="form-control search-input" type="text" id="llm-query"
+                    placeholder="문장으로 검색해 궁금한 영화를 찾아보세요">
                 <div class="input-group-append">
                     <button class="btn btn-primary btn-search" id="search-button">검색</button>
                     <button class="btn btn-secondary" id="reset-button">초기화</button>
@@ -157,15 +216,13 @@
     </div>
 
     <div>
-        <h1>영화 검색</h1>
         <div class="search-container">
 
-            <!-- <div class="detail-search-container">
-                <div class="search-item">
+            <div class="detail-search-container">
+                <!-- <div class="search-item">
                     <label for="llm-query">llm 모델한테 문장으로 질문</label>
                     <input class="form-control search-input w-100" style="max-width: 95%;" type="text" id="llm-query">
                 </div> -->
-
 
                 <div class="search-item">
                     <label for="title-query">Title</label>
@@ -200,14 +257,17 @@
             </div>
         </div>
         <div class="d-flex justify-content-end">
-            <button id="rec-button" class="btn btn-primary">영화 추천받기</button>
+            <button id="rec-button" class="btn btn-primary" hidden>영화 추천받기</button>
         </div>
     </div>
 
     <div id="loading" class="loading" style="display:none;">검색 중...</div>
-    <div class="movie-list" id="movie-list"></div>
-    <div class="actor-list" id="actor-list"></div>
+    <div class="movie-top-list" id="movie-list"></div>
+    <div class="actor-top-list" id="actor-list"></div>
     </div>
+
+
+    <div class="p-5 text-center bg-light fixed-bottom" id="rec-five-list"></div>
 
 
 
@@ -545,16 +605,20 @@
                 event.preventDefault();  // 폼의 기본 동작인 페이지 새로 고침 방지
                 // 검색 함수를 부른다 
                 search();
+                recListContent();
             });
 
             // 클래스가 search input인 모든 클래스에 각각 이벤트가 걸린다 
             document.querySelector('.search-input').addEventListener('keydown', function (event) {
-                    if (event.key === 'Enter') {
-                        event.preventDefault();  // 폼의 기본 동작인 페이지 새로 고침 방지
-                        search();  // 검색 함수 호출
+                if (event.key === 'Enter') {
+                    event.preventDefault();  // 폼의 기본 동작인 페이지 새로 고침 방지
+                    search();  // 검색 함수 호출
+                    recListContent();
                 }
             });
         });
+
+
 
 
 
@@ -625,7 +689,7 @@
 
             const query = querys; // querys가 하나의 값이라면 그대로 사용
             const queryHTML = `
-                <p><strong>answer:</strong> ${query}</p>
+                <p hidden><strong>answer:</strong> ${query}</p>
             `;
             resultsContainer.innerHTML = queryHTML;
 
@@ -770,27 +834,9 @@
 
 
 
-
-
-        // // 쿠키에서 access_token 값을 가져오는 함수
-        // function getAccessTokenFromCookie() {
-        //     // 모든 쿠키 문자열을 가져옵니다.
-        //     const cookies = document.cookie;
-
-        //     // 'access_token=' 뒤의 값을 추출하는 정규식
-        //     const match = cookies.match(/access_token=([^;]+)/);
-
-        //     // match가 있을 경우 토큰 값을 반환하고, 없으면 null 반환
-        //     return match ? match[1] : null;
-        // }
-
-        // // 사용 예시
-        // const accessToken = getAccessTokenFromCookie();
-
-
         // 영화인 상세 정보 모달창 
         $(document).ready(function () {
-            $(document).on('click', '.actor-list h3', function () {
+            $(document).on('click', '.actor-list', function () {
                 const peopleCd = $(this).closest('.actor-list').data('actorcd');
                 console.log(`Selected Actor Code: ${peopleCd}`);
 
@@ -926,7 +972,7 @@
         }
 
         // 영화 리스트 항목 클릭 이벤트
-        $(document).on('click', '.movie-list h3', function () {
+        $(document).on('click', '.movie-list', function () {
             const movieCd = $(this).closest('.movie-list').data('moviecd');
             console.log(`Selected Movie Code: ${movieCd}`);
             openMovieDetailModal(movieCd);
@@ -1066,6 +1112,44 @@
         });
 
 
+
+
+
+        function recListContent() {
+            $.ajax({
+                url: `/selected_movies`,
+                method: 'POST',
+                dataType: 'json',
+                success: function (data) {
+                    console.log(data);
+
+                    // 추천 영화 목록을 표시할 컨테이너
+                    const filmContainer = document.getElementById('rec-five-list');
+                    filmContainer.innerHTML = '';  // 기존 내용을 초기화
+
+                    // 영화 데이터를 순회하며 innerHTML 생성
+                    data.forEach(film => {
+                        const filmBoxHTML = `
+                    <div class="rec-film-item">
+                        <h6>${film.title}</h6>
+                        <br />
+                        <strong>제작국가:</strong> ${film.nation}
+                        <br />
+                        <strong>감독:</strong> ${film.director}
+                        <br />
+                        <strong>장르:</strong> ${film.genre}
+                        <br />
+                        <strong>배우:</strong> ${film.actor}
+                    </div>
+                `;
+                        filmContainer.innerHTML += filmBoxHTML;  // 새 항목을 추가
+                    });
+                },
+                error: function (error) {
+                    console.error('영화 목록을 가져오는 중 오류가 발생했습니다.', error);
+                }
+            });
+        }
 
 
 
