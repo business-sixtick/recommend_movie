@@ -29,13 +29,6 @@
         /* 각 검색바가 50% 너비를 차지하도록 설정 */
     }
 
-    .form-control {
-        width: 100%;
-        /* 입력 필드가 부모 컨테이너의 가로폭을 채우도록 설정 */
-        padding: 8px;
-        font-size: 14px;
-    }
-
     label {
         margin-bottom: 5px;
         /* 라벨과 입력 필드 간의 간격 */
@@ -116,63 +109,156 @@
         border-bottom-left-radius: 0;
     }
 
-    .input-group {
-        border-radius: .375rem;
-        /* 둥근 테두리 */
+#search-container {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 12px 0;
+    margin: 0;
+    background-color: #f0f8ff;
+    display: flex;               /* 플렉스 박스로 설정 */
+    height: 100px;               /* 높이 설정 */
+}
+
+    .main-body {
+        overflow-y: auto;
     }
 
-    .fixed-bottom {
-        position: fixed;
-        bottom: 0;
-        z-index: 100;
-        width: 100%;
-    }
-
-    #rec-five-list{
-        display: flex;
+    #rec-five-list {
+        display: none;
         align-items: stretch;
         flex-direction: row;
-        gap: 10px;  /* 항목들 간의 간격을 동일하게 설정 */
-        margin: 10px;  /* rec-film-list와 film-item 간의 간격 설정 */
+        gap: 10px;
+        /* 항목들 간의 간격을 동일하게 설정 */
+        bottom: 0;
+        left: 0;
+        z-index: 100;
+        margin: 0;
+        /* 외부 여백 없애기 */
+        width: 100%;
+        position: fixed;
+        height: 200px;
+    }
+
+    #carouselExample {
+        margin-bottom: 200px;
     }
 
     .rec-film-item {
-        flex: 1 1 calc(20% - 10px);  /* 5개씩 나누어 가로로 배치, 간격 고려 */
+        flex: 1 1 calc(20% - 10px);
+        /* 5개씩 나누어 가로로 배치, 간격 고려 */
         margin: 0;
         border: 2px solid #ddd;
         border-radius: 10px;
         background-color: #f5f5f5;
         box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-        overflow: hidden;  /* 넘치는 내용 숨김 */
-        height: 100px;  /* 고정된 높이 */
+        overflow: hidden;
+        /* 넘치는 내용 숨김 */
+        height: 100px;
+        /* 고정된 높이 */
         text-align: center;
         box-sizing: border-box;
     }
 
-    .movie-top-list, .actor-top-list{
+    /* Flexbox 설정 */
+    .container {
         display: flex;
-        align-items: stretch;
-        flex-direction: row;
         flex-wrap: wrap;
-        gap: 10px;  /* 항목들 간의 간격을 동일하게 설정 */
-        margin: 10px;  /* rec-film-list와 film-item 간의 간격 설정 */
+        gap: 20px;
+        /* 간격을 좀 더 넓힘 */
+        justify-content: center;
+        /* 콘텐츠 중앙 정렬 */
+        margin: 0;
+        width: 100%;
+        /* 전체 화면을 사용하여 중앙 정렬 */
+        box-sizing: border-box;
     }
 
-    .movie-list, .actor-list{
-        flex: 1 1 calc(20% - 10px);  /* 5개씩 나누어 가로로 배치, 간격 고려 */
-        margin: 0;
+    /* 전체적으로 영화 목록과 배우 목록 스타일 */
+    .movie-top-list,
+    .actor-top-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+        padding: 10px;
+    }
+
+    .movie-list,
+    .actor-list {
+        width: 200px;
+        /* 고정 크기 */
+        height: 280px;
+        /* 고정 크기 */
         border: 2px solid #ddd;
         border-radius: 10px;
         background-color: #f5f5f5;
         box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-        overflow: hidden;  /* 넘치는 내용 숨김 */
-        height: 100px;  /* 고정된 높이 */
         text-align: center;
+        padding: 10px;
         box-sizing: border-box;
     }
 
+    /* 작은 화면에서도 2줄로 표시 */
+    @media (max-width: 768px) {
 
+        .movie-list,
+        .actor-list {
+            width: 160px;
+            /* 화면 크기에 맞게 아이템 크기 조정 */
+        }
+    }
+
+    /* 기본적으로 한 페이지에서 보여야 할 항목들 */
+    .carousel-inner {
+        display: flex;
+    }
+
+    .carousel-item {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .carousel-control-prev svg,
+    .carousel-control-next svg {
+        color: black;
+        /* 아이콘 색상을 흰색으로 설정 */
+    }
+
+    /* 드롭다운 메뉴가 아이콘 바로 아래에 표시되도록 함 */
+    .dropdown {
+        position: relative;
+    }
+
+    #dropdownIcon {
+        cursor: pointer;
+        font-size: 24px;
+        /* 아이콘 크기 키우기 */
+    }
+
+    #dropdownMenu {
+        display: none;
+        /* 드롭다운 메뉴는 기본적으로 숨겨져 있습니다. */
+        position: absolute;
+        top: 100%;
+        /* 아이콘 바로 아래에 위치 */
+        left: auto;
+        right: 0;
+        z-index: 200;
+        min-width: 160px;
+    }
+
+    #dropdownIcon:hover+#dropdownMenu {
+        display: block;
+        /* 아이콘을 hover했을 때 메뉴를 표시 */
+    }
 </style>
+
+
+
+
 
 <head>
     <meta charset="UTF-8">
@@ -188,34 +274,56 @@
 </head>
 
 <body>
-    <div class="p-5 mb-5 text-center bg-light dynamic-content" style="position: sticky; top: 0; z-index: 100;">
-        <!-- style을 통해 스크롤을 내려도 상단에 고정 -->
-        <div class="mb-3 d-flex justify-content-between align-items-center">
-            <h3 class="m-0">
-                {% if username %}
-                {{ username }}님, 환영합니다
-            </h3>
-            <button type="button" class="btn btn-secondary" id="logoutButton">로그아웃</button>
+    <div class="d-flex justify-content-between align-items-center bg-dark text-light" id="header"
+        style="position: relative; padding: 8px 20px; margin: 0;">
+        <h5 class="m-0">
+            {% if username %}
+            {{ username }} 님, 환영합니다
             {% else %}
-            <h3 class="m-0">로그인을 해주세요</h3>
-            <button type="button" id="openModal" class="btn btn-primary">로그인</button>
+            로그인을 해주세요
             {% endif %}
+        </h5>
+        {% if username %}
+        <button type="button" class="btn btn-outline-light" id="logoutButton"
+            style="padding: 4px 12px; font-size: 0.85rem; border-radius: 20px;">로그아웃</button>
+        {% else %}
+        <button type="button" id="openModal" class="btn btn-primary"
+            style="padding: 4px 12px; font-size: 0.85rem; border-radius: 20px;">로그인</button>
+        {% endif %}
+    </div>
+
+    <!-- 영화 검색 영역 -->
+    <div id="search-container" style="display: flex; justify-content: center; align-items: center; width: 100%;">
+        <!-- <h3 class="m-0" style="color: #333;">영화 검색</h3> -->
+        <div class="input-group" style="width: 50%;">
+            <input class="form-control search-input" type="text" id="llm-query" placeholder="궁금한 영화에 대해 문장으로 작성해보세요"
+                style="border-radius: 20px 0 0 20px; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);">
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary" id="reset-button" hidden
+                    style="border-radius: 20px; font-size: 0.875rem;">초기화</button>
+                <button class="btn btn-info btn-search" id="search-button"
+                    style="border-radius: 0 20px 20px 0; font-size: 0.875rem; padding: 8px 20px; width: auto; display: flex; align-items: center; justify-content: center;">
+                    검색
+                </button>
+            </div>
         </div>
 
-        <div class="mt-4 d-flex align-items-center justify-content-center">
-            <h3>영화 검색</h3>
-            <div class="input-group" style="width: 70%;">
-                <input class="form-control search-input" type="text" id="llm-query"
-                    placeholder="문장으로 검색해 궁금한 영화를 찾아보세요">
-                <div class="input-group-append">
-                    <button class="btn btn-primary btn-search" id="search-button">검색</button>
-                    <button class="btn btn-secondary" id="reset-button">초기화</button>
-                </div>
+        <div class="dropdown" style="margin-left: auto; margin-right: 20px; position: relative;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-person-fill"
+                viewBox="0 0 16 16" id="dropdownIcon">
+                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />
+            </svg>
+
+            <!-- 드롭다운 메뉴 -->
+            <div class="dropdown-menu" id="dropdownMenu">
+                <a class="dropdown-item" href="#">내 프로필</a>
+                <a class="dropdown-item" href="#">설정</a>
+                <a class="dropdown-item" href="#">로그아웃</a>
             </div>
         </div>
     </div>
 
-    <div>
+    <div class="main-body">
         <div class="search-container">
 
             <div class="detail-search-container">
@@ -261,13 +369,46 @@
         </div>
     </div>
 
-    <div id="loading" class="loading" style="display:none;">검색 중...</div>
-    <div class="movie-top-list" id="movie-list"></div>
-    <div class="actor-top-list" id="actor-list"></div>
+    <!-- <div id="loading" class="loading" style="display:none;">검색 중...</div> -->
+    <div id="alert"></div>
+
+
+
+    <div id="carouselExample" class="carousel slide">
+        <div class="carousel-inner" id="carousel-inner">
+            <!-- 첫 번째 항목: 영화 리스트 -->
+            <div class="carousel-item active" id="movie-item">
+                <div class="movie-top-list" id="movie-list"></div>
+            </div>
+            <!-- 두 번째 항목: 배우 리스트 -->
+            <div class="carousel-item active" id="actor-item">
+                <div class="actor-top-list" id="actor-list"></div>
+            </div>
+        </div>
+
+        <!-- 이전 버튼 -->
+        <a class="carousel-control-prev" href="#carouselExample" role="button" data-slide="prev" id="prevButton">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+                class="bi bi-caret-left-fill" viewBox="0 0 16 16">
+                <path
+                    d="m3.86 7.247 5.482-4.796c.646-.566 1.658-.106 1.658.753v9.592a1 1 0 0 1-1.659.753l-5.48-4.796a1 1 0 0 1 0-1.506z" />
+            </svg>
+            <span class="sr-only">Previous</span>
+        </a>
+        <!-- 다음 버튼 -->
+        <a class="carousel-control-next" href="#carouselExample" role="button" data-slide="next" id="nextButton">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+                class="bi bi-caret-right-fill" viewBox="0 0 16 16">
+                <path
+                    d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z" />
+            </svg>
+            <span class="sr-only">Next</span>
+        </a>
     </div>
 
+    <div class="p-5 text-center bg-light" id="rec-five-list"></div>
 
-    <div class="p-5 text-center bg-light fixed-bottom" id="rec-five-list"></div>
+
 
 
 
@@ -429,6 +570,20 @@
 
 
     <script>
+        window.addEventListener('scroll', function () {
+            const header = document.getElementById('header');
+            const searchContainer = document.getElementById('search-container');
+
+            if (window.scrollY > header.offsetHeight) {
+                header.style.display = 'none';
+            } else {
+                header.style.display = 'flex';
+            }
+        });
+
+
+
+
         // 초기화 버튼 클릭 시 검색창들 초기화
         document.getElementById('reset-button').addEventListener('click', function () {
             document.getElementById('title-query').value = '';
@@ -594,30 +749,63 @@
 
 
 
-
-        // 검색 버튼 이벤트 
+        // 검색 버튼 누르면 일어나는 이벤트 
         document.addEventListener('DOMContentLoaded', function () {
-
             const searchButton = document.querySelector('#search-button');
+            const recFiveList = document.querySelector('#rec-five-list');
 
-            // #search-button 클릭 시 이벤트 처리
-            document.querySelector('#search-button').addEventListener('click', function (event) {
-                event.preventDefault();  // 폼의 기본 동작인 페이지 새로 고침 방지
-                // 검색 함수를 부른다 
-                search();
-                recListContent();
+            const showRecList = function () {
+                recFiveList.style.display = 'flex';  // 검색 결과 표시
+            };
+
+            searchButton.addEventListener('click', function (event) {
+                event.preventDefault();  // 페이지 새로고침 방지
+                search();  // 검색 함수 호출
+                recListContent();  // 추천 리스트 생성
+                setTimeout(showRecList, 500);  // 검색 후 약간의 지연 후에 결과 표시
             });
 
-            // 클래스가 search input인 모든 클래스에 각각 이벤트가 걸린다 
             document.querySelector('.search-input').addEventListener('keydown', function (event) {
                 if (event.key === 'Enter') {
-                    event.preventDefault();  // 폼의 기본 동작인 페이지 새로 고침 방지
-                    search();  // 검색 함수 호출
+                    event.preventDefault();  // 페이지 새로고침 방지
+                    search();
                     recListContent();
+                    setTimeout(showRecList, 500);
                 }
             });
         });
 
+
+
+
+
+        // 로그인 드롭다운 메뉴 열기 
+        document.addEventListener('DOMContentLoaded', function () {
+            const dropdownIcon = document.querySelector('#dropdownIcon');
+            const dropdownMenu = document.querySelector('#dropdownMenu');
+
+            // 아이콘 클릭 시 드롭다운 메뉴 토글
+            dropdownIcon.addEventListener('click', function () {
+                const isVisible = dropdownMenu.style.display === 'block';
+                dropdownMenu.style.display = isVisible ? 'none' : 'block';
+            });
+
+            // 드롭다운 메뉴 밖을 클릭하면 드롭다운을 닫음
+            document.addEventListener('click', function (event) {
+                if (!dropdownIcon.contains(event.target) && !dropdownMenu.contains(event.target)) {
+                    dropdownMenu.style.display = 'none';
+                }
+            });
+        });
+
+
+
+
+
+        // 슬라이드 자동으로 넘어가는 기능 비활성화 
+        $('#carouselExample').carousel({
+            interval: false
+        });
 
 
 
@@ -656,13 +844,13 @@
                             success: function (response) {
                                 if (response.actor_list) {
                                     displayActorResults(response.actor_list);
-                                    console.log("displayActorResults");
+                                    // console.log("displayActorResults");
                                 } else if (response.movie_list) {
                                     displayResults(response.movie_list);
-                                    console.log("displayResults");
+                                    // console.log("displayResults");
                                 } else if (response.llmAnswer) {
                                     fetchLlmAnswer(response.llmAnswer);
-                                    console.log("fetchLlmAnswer");
+                                    // console.log("fetchLlmAnswer");
                                 }
                             },
                             error: function (xhr, status, error) {
@@ -680,18 +868,18 @@
 
         function fetchLlmAnswer(querys) {
             // 사용자 입력 값 가져오기
-            const resultsContainer = document.getElementById('movie-list');
-            resultsContainer.innerHTML = ''; // 기존 결과 초기화
+            // const resultsContainer = document.getElementById('movie-list');
+            // resultsContainer.innerHTML = ''; // 기존 결과 초기화
 
-            if (querys.length === 0) {
-                resultsContainer.innerHTML = '<p>인공지능이 대답을 거부합니다.</p>';
-            }
+            // if (querys.length === 0) {
+            //     resultsContainer.innerHTML = '<p>인공지능이 대답을 거부합니다.</p>';
+            // }
 
             const query = querys; // querys가 하나의 값이라면 그대로 사용
-            const queryHTML = `
-                <p hidden><strong>answer:</strong> ${query}</p>
-            `;
-            resultsContainer.innerHTML = queryHTML;
+            // const queryHTML = `
+            //     <p hidden><strong>answer:</strong> ${query}</p>
+            // `;
+            // resultsContainer.innerHTML = queryHTML;
 
             try {
                 // 백틱(```)이 포함되어 있으면 제거 (1개 이상 백틱을 처리)
@@ -711,7 +899,7 @@
 
                 // 중괄호 밖의 불필요한 공백 제거
                 jsonPart = jsonPart.replace(/^\s+|\s+$/g, '');
-                console.log("JSON 데이터 확인:", jsonPart);
+                // console.log("JSON 데이터 확인:", jsonPart);
 
                 // JSON으로 변환
                 const parsedQuery = JSON.parse(jsonPart);
@@ -747,50 +935,12 @@
 
             } catch (error) {
                 console.error('JSON 파싱 실패:', error);
-                resultsContainer.innerHTML += '<p>응답을 처리하는 데 실패했습니다</p>';
+                // resultsContainer.innerHTML += '<p>응답을 처리하는 데 실패했습니다</p>';
             }
         }
 
 
 
-
-
-
-
-        // 영화 목록 결과를 화면에 표시하는 함수
-        function displayResults(movies) {
-            // console.log(movies);
-            // console.log(movies.movieList);
-            const resultsContainer = document.getElementById('movie-list');
-            resultsContainer.innerHTML = ''; // 기존 결과 초기화
-
-            if (movies.length === 0) {
-                resultsContainer.innerHTML = '<p>No results found.</p>';
-            } else {
-                movies.forEach(function (movie) {
-                    const movieHTML = `
-                <div class="movie-list" data-movieCd="${movie.movieCd}">
-                <h3>${movie.movieNm} (${movie.prdtYear})</h3>
-                <p><strong>영화 코드:</strong> ${movie.movieCd}</p>
-                <p><strong>영어 제목:</strong> ${movie.movieNmEn}</p>
-                <p><strong>개봉일:</strong> ${movie.openDt}</p>
-                <p><strong>영화 유형:</strong> ${movie.typeNm}</p>
-                <p><strong>제작 상태:</strong> ${movie.prdtStatNm}</p>
-                <p><strong>제작 국가:</strong> ${movie.nationAlt}</p>
-                <p><strong>장르:</strong> ${movie.genreAlt}</p>
-                <p><strong>대표 제작국가:</strong> ${movie.repNationNm}</p>
-                <p><strong>대표 장르:</strong> ${movie.repGenreNm}</p>
-                <p><strong>감독:</strong> ${movie.directors.map(director => director.peopleNm).join(",")}</p>
-                <p><strong>제작사 코드:</strong> ${movie.companys.map(company => company.companyCd).join(",")}</p>
-                <p><strong>제작사명:</strong> ${movie.companys.map(company => company.companyNm).join(",")}</p>
-            `;
-
-                    resultsContainer.innerHTML += movieHTML;
-                });
-            }
-
-            resetSearchFields();
-        }
 
         // 검색창 초기화 함수
         function resetSearchFields() {
@@ -801,32 +951,117 @@
             // llm-query는 초기화하지 않음
         }
 
-        // 배우 목록 결과를 화면에 표시하는 함수
-        function displayActorResults(actorData) {
-            const resultsContainer = document.getElementById('actor-list');
-            resultsContainer.innerHTML = ''; // 기존 결과 초기화
 
-            if (actorData.length === 0) {
-                resultsContainer.innerHTML = '<p>배우를 찾을 수 없습니다.</p>';
-            } else {
-                actorData.forEach(function (actor) {
-                    // '배우' 또는 '감독'만 출력하도록 조건 추가
-                    if (actor.repRoleNm === '배우' || actor.repRoleNm === '감독') {
-                        const movieTitles = actor.filmoNames.split("|").join(",");
-                        const actorHTML = `
-                            <div class="actor-list" data-actorCd="${actor.peopleCd}">
-                                <h3>${actor.peopleNm} (${actor.peopleNmEn})</h3>
-                                <p><strong>영화인 코드:</strong> ${actor.peopleCd}</p>
-                                <p><strong>분야:</strong> ${actor.repRoleNm}</p>
-                                <p><strong>참여 영화:</strong> ${movieTitles}</p>
-                            </div>
-                        `;
-                        resultsContainer.innerHTML += actorHTML;
-                    }
+
+
+
+        // <p><strong>영화 코드:</strong> ${movie.movieCd}</p>
+        //         <p><strong>영어 제목:</strong> ${movie.movieNmEn}</p>
+        //         <p><strong>개봉일:</strong> ${movie.openDt}</p>
+        //         <p><strong>영화 유형:</strong> ${movie.typeNm}</p>
+        //         <p><strong>제작 상태:</strong> ${movie.prdtStatNm}</p>
+        //         <p><strong>제작 국가:</strong> ${movie.nationAlt}</p>
+        //         <p><strong>장르:</strong> ${movie.genreAlt}</p>
+        //         <p><strong>대표 제작국가:</strong> ${movie.repNationNm}</p>
+        //         <p><strong>대표 장르:</strong> ${movie.repGenreNm}</p>
+        //         <p><strong>감독:</strong> ${movie.directors.map(director => director.peopleNm).join(", ")}</p>
+        //         <p><strong>제작사 코드:</strong> ${movie.companys.map(company => company.companyCd).join(", ")}</p>
+        //         <p><strong>제작사명:</strong> ${movie.companys.map(company => company.companyNm).join(", ")}</p>
+
+
+        // 화면 크기 기반으로 한 페이지에 표시할 수 있는 항목 수 계산
+        function calculateItemsPerPage() {
+            const containerWidth = window.innerWidth;
+            const itemWidth = 200; // 아이템의 고정 너비
+            const gap = 20; // 간격
+
+            // 한 행에 몇 개의 항목을 표시할 수 있을지 계산
+            const itemsPerRow = Math.floor((containerWidth - gap) / (itemWidth + gap));
+
+            // 두 줄이므로 한 페이지당 표시되는 항목 개수는 itemsPerRow * 2
+            return itemsPerRow * 2;
+        }
+
+        // 리스트 항목을 carousel 페이지로 나누어 표시하는 함수
+        function createCarouselPages(items, targetId, className) {
+            const carouselInner = document.getElementById(targetId);
+            carouselInner.innerHTML = '';  // 초기화
+
+            const itemsPerPage = calculateItemsPerPage();  // 화면 크기에 맞게 계산
+            const totalPages = Math.ceil(items.length / itemsPerPage);
+
+            for (let page = 0; page < totalPages; page++) {
+                const carouselItem = document.createElement('div');
+                carouselItem.className = `carousel-item${page === 0 ? ' active' : ''}`;
+
+                const listWrapper = document.createElement('div');
+                listWrapper.className = className;  // movie-top-list 또는 actor-top-list
+
+                const start = page * itemsPerPage;
+                const end = start + itemsPerPage;
+                items.slice(start, end).forEach(item => {
+                    const listItem = document.createElement('div');
+                    listItem.innerHTML = item;  // HTML 내용 추가
+                    listWrapper.appendChild(listItem);
                 });
+
+                carouselItem.appendChild(listWrapper);
+                carouselInner.appendChild(carouselItem);
             }
 
-            resetSearchFields();
+        }
+
+
+        function displayResults(movies) {
+            const resultsContainer = document.getElementById('carousel-inner');
+            resultsContainer.innerHTML = ''; // 기존 결과 초기화
+
+            const movieItems = movies.map(movie => `
+        <div class="movie-list" data-movieCd="${movie.movieCd}">
+            <h5>${movie.movieNm} <br> (${movie.prdtYear})</h5>
+        </div>
+    `);
+
+            createCarouselPages(movieItems, 'carousel-inner', 'movie-top-list');
+        }
+
+
+        function displayActorResults(actorData) {
+            const resultsContainer = document.getElementById('carousel-inner');
+            resultsContainer.innerHTML = ''; // 기존 결과 초기화
+
+            const actorItems = actorData.map(actor => {
+                // '배우' 또는 '감독'만 출력하도록 조건 추가
+                if (actor.repRoleNm === '배우' || actor.repRoleNm === '감독') {
+                    const movieTitles = actor.filmoNames.split("|").join(", ");
+                    return `
+                <div class="actor-list" data-actorCd="${actor.peopleCd}">
+                    <h3>${actor.peopleNm} (${actor.peopleNmEn})</h3>
+                    <p><strong>영화인 코드:</strong> ${actor.peopleCd}</p>
+                    <p><strong>분야:</strong> ${actor.repRoleNm}</p>
+                    <p><strong>참여 영화:</strong> ${movieTitles}</p>
+                </div>
+            `;
+                }
+                return '';
+            }).filter(item => item !== '');  // 빈 항목 제외
+
+            createCarouselPages(actorItems, 'carousel-inner', 'actor-top-list');
+        }
+
+        // 슬라이드 항목 개수 확인
+        const carouselItems = document.querySelectorAll('.carousel-item');
+
+        // 슬라이드가 하나만 있을 경우 버튼 숨기기
+        if (carouselItems.length <= 1) {
+            document.getElementById('prevButton').style.display = 'none';
+            document.getElementById('nextButton').style.display = 'none';
+        }
+
+        // 페이지가 여러 개일 경우 버튼 보여주기 (추후 동적으로 항목이 추가되는 경우를 대비하여 추가)
+        else {
+            document.getElementById('prevButton').style.display = 'block';
+            document.getElementById('nextButton').style.display = 'block';
         }
 
 
@@ -933,10 +1168,10 @@
                         const payload = {
                             code: movie.movieCd, // 영화 코드
                             title: movie.movieNm, // 영화명 (국문)
-                            director: movie.directors.map(director => director.peopleNm).join(","), // 감독
-                            actor: movie.actors.map(actor => actor.peopleNm).join(","), // 배우
-                            genre: movie.genres.map(genre => genre.genreNm).join(","), // 장르
-                            nation: movie.nations.map(nation => nation.nationNm).join(",") // 제작국가
+                            director: movie.directors.map(director => director.peopleNm).join(", "), // 감독
+                            actor: movie.actors.map(actor => actor.peopleNm).join(", "), // 배우
+                            genre: movie.genres.map(genre => genre.genreNm).join(", "), // 장르
+                            nation: movie.nations.map(nation => nation.nationNm).join(", ") // 제작국가
                         };
 
                         // console.log(payload);

@@ -471,7 +471,7 @@ async def search_movies(
     # 외부 API 요청 파라미터 구성 (배우가 아닐 경우에만 영화 검색)
     external_api_params = {
         "key": KOBIS_API_KEY,
-        "itemPerPage": 50,
+        "itemPerPage": 100,
     }    
 
     if title:
