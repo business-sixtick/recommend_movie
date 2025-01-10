@@ -1,0 +1,205 @@
+.search-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.detail-search-container {
+  display: flex;
+  flex-wrap: wrap;
+  /* 2개씩 나열 후 줄바꿈 */
+  gap: 20px;
+  /* 검색바 간의 간격 */
+  width: 100%;
+  /* 부모 컨테이너의 전체 너비 */
+}
+
+.search-item {
+  display: none;
+  /*화면에서 안 보이게 하기*/
+  flex-direction: column;
+  /* 라벨과 입력 필드를 위아래로 배치 */
+  flex: 1 1 calc(50% - 20px);
+  /* 각 검색바가 50% 너비를 차지하도록 설정 */
+}
+
+label {
+  margin-bottom: 5px;
+  /* 라벨과 입력 필드 간의 간격 */
+  font-weight: bold;
+}
+
+.modal-dialog {
+  max-width: none;
+  /* 기본 max-width 제한을 제거 */
+  width: auto;
+  /* 내용에 맞게 자동으로 크기 조정 */
+}
+
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  width: auto;
+  padding: 20px;
+  box-sizing: border-box;
+  max-height: 90vh;
+  /* 화면 높이의 90%로 제한 */
+}
+
+.modal-header,
+.modal-footer {
+  flex-shrink: 0;
+  /* 이들 요소가 축소되지 않도록 설정 */
+}
+
+.modal-body {
+  flex-grow: 1;
+  /* body 영역은 가능한 모든 공간을 차지하도록 설정 */
+  overflow-y: auto;
+  /* 내용물이 넘칠 경우 스크롤바 추가 */
+}
+
+/* 필모그래피 그리드 설정 */
+.filmography-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  /* 한 줄에 5개씩 배치 */
+  gap: 15px;
+  /* 항목 간 간격 */
+  margin-top: 20px;
+}
+
+.film-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.film-box {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+  background-color: #f9f9f9;
+  text-align: center;
+  height: 150px;
+  /* 정사각형 박스를 만들기 위한 고정 높이 */
+  overflow: hidden;
+  /* 넘치는 텍스트는 숨기기 */
+}
+
+.film-box strong {
+  font-size: 12px;
+  color: #333;
+}
+
+.film-box br {
+  margin-bottom: 5px;
+}
+
+.input-group .btn {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+#search-container {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 12px 0;
+  margin: 0;
+  background-color: #f0f8ff;
+  display: flex;
+  /* 플렉스 박스로 설정 */
+  height: 80px;
+  /* 높이 설정 */
+}
+
+.main-body {
+  overflow-y: auto;
+}
+
+#rec-five-list {
+  display: none;
+  align-items: stretch;
+  flex-direction: row;
+  gap: 20px;
+  bottom: 0;
+  z-index: 100;
+  margin: 0;
+}
+
+#carouselExample {
+  margin-bottom: 200px;
+}
+
+.rec-film-item {
+  flex: 1 1 calc(20% - 10px);
+  /* 5개씩 나누어 가로로 배치, 간격 고려 */
+  margin: 0;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  background-color: #f5f5f5;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  /* 넘치는 내용 숨김 */
+  height: 280px;
+  width: 200px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* Flexbox 설정 */
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  /* 간격을 좀 더 넓힘 */
+  justify-content: center;
+  /* 콘텐츠 중앙 정렬 */
+  margin: 0;
+  width: 100%;
+  /* 전체 화면을 사용하여 중앙 정렬 */
+  box-sizing: border-box;
+}
+
+/* 전체적으로 영화 목록과 배우 목록 스타일 */
+.movie-top-list,
+.actor-top-list {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 20px;
+  justify-content: center;
+  padding: 10px;
+}
+
+.movie-list,
+.actor-list {
+  width: 200px;
+  height: 280px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  background-color: #f5f5f5;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* 기본적으로 한 페이지에서 보여야 할 항목들 */
+.carousel-inner {
+  display: flex;
+}
+
+.carousel-item {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.carousel-control-prev svg,
+.carousel-control-next svg {
+  color: black;
+}
