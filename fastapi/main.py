@@ -235,10 +235,6 @@ def decode_jwt(token: str):
     
     return header, payload, signature_b64
 
-# # 로그인 페이지 제공 
-# @app.get("/login")
-# async def get_login(request: Request):
-#     return templates.TemplateResponse("login.html", {"request": request})
 
 @app.post("/login")
 async def login(username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):

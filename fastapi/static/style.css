@@ -201,5 +201,15 @@ label {
 
 .carousel-control-prev svg,
 .carousel-control-next svg {
-  color: black;
+  color: #333;
+  width: 24px;
+  height: 24px;
+}
+
+#prevButton, #nextButton {
+  display: flex !important;
+  align-items: center !important;  /* 수직 중앙 정렬 */
+  justify-content: center !important;  /* 수평 중앙 정렬 */
+  height: 100% !important;  /* 부모 태그의 전체 높이를 차지하게 설정 */
+  position: absolute !important;  /* !important 사용으로 강제 적용 */
 }

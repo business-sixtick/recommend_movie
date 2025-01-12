@@ -1,769 +1,1075 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>영화 검색 및 추천</title>
 
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+    />
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
     <!-- Bootstrap JS -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
-</head>
+  </head>
 
-<body>
-    <div class="d-flex justify-content-between align-items-center bg-dark text-light" id="header"
-        style="position: relative; padding: 8px 20px; margin: 0;">
-        <h5 class="m-0">
-            {% if username %}
-            {{ username }} 님, 환영합니다
-            {% else %}
-            로그인을 해주세요
-            {% endif %}
-        </h5>
-        {% if username %}
-        <button type="button" class="btn btn-outline-light" id="logoutButton"
-            style="padding: 4px 12px; font-size: 0.85rem; border-radius: 20px;">로그아웃</button>
-        {% else %}
-        <button type="button" id="openModal" class="btn btn-primary"
-            style="padding: 4px 12px; font-size: 0.85rem; border-radius: 20px;">로그인</button>
-        {% endif %}
+  <body>
+    <div
+      class="d-flex justify-content-between align-items-center bg-dark text-light"
+      id="header"
+      style="position: relative; padding: 8px 20px; margin: 0"
+    >
+      <h5 class="m-0">
+        {% if username %} {{ username }} 님, 환영합니다 {% else %} 로그인을
+        해주세요 {% endif %}
+      </h5>
+      {% if username %}
+      <button
+        type="button"
+        class="btn btn-outline-light"
+        id="logoutButton"
+        style="padding: 4px 12px; font-size: 0.85rem; border-radius: 20px"
+      >
+        로그아웃
+      </button>
+      {% else %}
+      <button
+        type="button"
+        id="openModal"
+        class="btn btn-primary"
+        style="padding: 4px 12px; font-size: 0.85rem; border-radius: 20px"
+      >
+        로그인
+      </button>
+      {% endif %}
     </div>
 
     <!-- 영화 검색 영역 -->
-    <div id="search-container" style="display: flex; justify-content: center; align-items: center; width: 100%;">
-        <!-- <h3 class="m-0" style="color: #333;">영화 검색</h3> -->
-        <div class="input-group" style="width: 50%;">
-            <input class="form-control search-input" type="text" id="llm-query" placeholder="궁금한 영화에 대해 문장으로 작성해보세요"
-                style="border-radius: 20px 0 0 20px; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);">
-            <div class="input-group-append">
-                <button class="btn btn-outline-secondary" id="reset-button" hidden
-                    style="border-radius: 20px; font-size: 0.875rem;">초기화</button>
-                <button class="btn btn-info btn-search" id="search-button"
-                    style="border-radius: 0 20px 20px 0; font-size: 0.875rem; padding: 8px 20px; width: auto; display: flex; align-items: center; justify-content: center;">
-                    검색
-                </button>
-            </div>
+    <div
+      id="search-container"
+      style="
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+      "
+    >
+      <!-- <h3 class="m-0" style="color: #333;">영화 검색</h3> -->
+      <div class="input-group" style="width: 50%">
+        <input
+          class="form-control search-input"
+          type="text"
+          id="llm-query"
+          placeholder="궁금한 영화에 대해 문장으로 작성해보세요"
+          style="
+            border-radius: 20px 0 0 20px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+          "
+        />
+        <div class="input-group-append">
+          <button
+            class="btn btn-outline-secondary"
+            id="reset-button"
+            hidden
+            style="border-radius: 20px; font-size: 0.875rem"
+          >
+            초기화
+          </button>
+          <button
+            class="btn btn-info btn-search"
+            id="search-button"
+            style="
+              border-radius: 0 20px 20px 0;
+              font-size: 0.875rem;
+              padding: 8px 20px;
+              width: auto;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            검색
+          </button>
         </div>
+      </div>
     </div>
 
     <div class="main-body">
-        <div class="search-container">
-
-            <div class="detail-search-container">
-                <!-- <div class="search-item">
+      <div class="search-container">
+        <div class="detail-search-container">
+          <!-- <div class="search-item">
                     <label for="llm-query">llm 모델한테 문장으로 질문</label>
                     <input class="form-control search-input w-100" style="max-width: 95%;" type="text" id="llm-query">
                 </div> -->
 
-                <div class="search-item">
-                    <label for="title-query">Title</label>
-                    <input class="form-control search-input" type="text" id="title-query">
-                </div>
+          <div class="search-item">
+            <label for="title-query">Title</label>
+            <input
+              class="form-control search-input"
+              type="text"
+              id="title-query"
+            />
+          </div>
 
-                <div class="search-item">
-                    <label for="actor-query">Actor</label>
-                    <input class="form-control search-input" type="text" id="actor-query">
-                </div>
+          <div class="search-item">
+            <label for="actor-query">Actor</label>
+            <input
+              class="form-control search-input"
+              type="text"
+              id="actor-query"
+            />
+          </div>
 
-                <div class="search-item">
-                    <label for="director-query">Director</label>
-                    <input class="form-control search-input" type="text" id="director-query">
-                </div>
+          <div class="search-item">
+            <label for="director-query">Director</label>
+            <input
+              class="form-control search-input"
+              type="text"
+              id="director-query"
+            />
+          </div>
 
-                <div class="search-item">
-                    <label for="nation-query">Nation</label>
-                    <input class="form-control search-input" type="text" id="nation-query" readonly data-toggle="modal"
-                        data-target="#nationModal">
-                </div>
+          <div class="search-item">
+            <label for="nation-query">Nation</label>
+            <input
+              class="form-control search-input"
+              type="text"
+              id="nation-query"
+              readonly
+              data-toggle="modal"
+              data-target="#nationModal"
+            />
+          </div>
 
-                <div class="search-item">
-                    <small>
-                        질문 튜토리얼<br>
-                        제목: ~라는 이름의, 영화 ~<br>
-                        배우: ~가 출연하다<br>
-                        감독: ~가 연출하다, 감독하다<br>
-                        국가: ~ 나라 영화<br>
-                    </small>
-                </div>
-            </div>
+          <div class="search-item">
+            <small>
+              질문 튜토리얼<br />
+              제목: ~라는 이름의, 영화 ~<br />
+              배우: ~가 출연하다<br />
+              감독: ~가 연출하다, 감독하다<br />
+              국가: ~ 나라 영화<br />
+            </small>
+          </div>
         </div>
-        <div class="d-flex justify-content-end">
-            <button id="rec-button" class="btn btn-primary" hidden>영화 추천받기</button>
-        </div>
+      </div>
+      <div class="d-flex justify-content-end">
+        <button id="rec-button" class="btn btn-primary" hidden>
+          영화 추천받기
+        </button>
+      </div>
     </div>
 
     <!-- <div id="loading" class="loading" style="display:none;">검색 중...</div> -->
     <div id="alert"></div>
 
-
-
     <div id="carouselExample" class="carousel slide">
-        <div class="carousel-inner" id="carousel-inner">
-            <!-- 첫 번째 항목: 영화 리스트 -->
-            <div class="carousel-item active" id="movie-item">
-                <div class="movie-top-list" id="movie-list"></div>
-            </div>
-            <!-- 두 번째 항목: 배우 리스트 -->
-            <div class="carousel-item active" id="actor-item">
-                <div class="actor-top-list" id="actor-list"></div>
-            </div>
+      <div class="carousel-inner" id="carousel-inner">
+        <!-- 첫 번째 항목: 영화 리스트 -->
+        <div class="carousel-item active" id="movie-item">
+          <div class="movie-top-list" id="movie-list"></div>
         </div>
+        <!-- 두 번째 항목: 배우 리스트 -->
+        <div class="carousel-item active" id="actor-item">
+          <div class="actor-top-list" id="actor-list"></div>
+        </div>
+      </div>
 
-        <!-- 이전 버튼 -->
-        <a class="carousel-control-prev" href="#carouselExample" role="button" data-slide="prev" id="prevButton">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                class="bi bi-caret-left-fill" viewBox="0 0 16 16">
-                <path
-                    d="m3.86 7.247 5.482-4.796c.646-.566 1.658-.106 1.658.753v9.592a1 1 0 0 1-1.659.753l-5.48-4.796a1 1 0 0 1 0-1.506z" />
-            </svg>
-            <span class="sr-only">Previous</span>
-        </a>
-        <!-- 다음 버튼 -->
-        <a class="carousel-control-next" href="#carouselExample" role="button" data-slide="next" id="nextButton">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                class="bi bi-caret-right-fill" viewBox="0 0 16 16">
-                <path
-                    d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z" />
-            </svg>
-            <span class="sr-only">Next</span>
-        </a>
+      <!-- 이전 버튼 -->
+      <a
+        class="carousel-control-prev"
+        href="#carouselExample"
+        role="button"
+        data-slide="prev"
+        id="prevButton"
+        style="display: none"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="currentColor"
+          class="bi bi-caret-left-fill"
+          viewBox="0 0 16 16"
+        >
+          <path
+            d="m3.86 7.247 5.482-4.796c.646-.566 1.658-.106 1.658.753v9.592a1 1 0 0 1-1.659.753l-5.48-4.796a1 1 0 0 1 0-1.506z"
+          />
+        </svg>
+        <span class="sr-only">Previous</span>
+      </a>
+      <!-- 다음 버튼 -->
+      <a
+        class="carousel-control-next"
+        href="#carouselExample"
+        role="button"
+        data-slide="next"
+        id="nextButton"
+        style="display: none"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="currentColor"
+          class="bi bi-caret-right-fill"
+          viewBox="0 0 16 16"
+        >
+          <path
+            d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"
+          />
+        </svg>
+        <span class="sr-only">Next</span>
+      </a>
     </div>
 
-    <div class="p-5 text-center bg-light" id="rec-five-list"></div>
+    <div id="carouselRecExample">
+      <div class="p-5 text-center bg-light" id="rec-five-list"></div>
 
-
-
-
-
+      <!-- 이전 버튼 -->
+      <a
+        class="carousel-control-prev"
+        href="#carouselRecExample"
+        role="button"
+        data-slide="prev"
+        id="prevButton"
+        style="display: none"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="currentColor"
+          class="bi bi-caret-left-fill"
+          viewBox="0 0 16 16"
+        >
+          <path
+            d="m3.86 7.247 5.482-4.796c.646-.566 1.658-.106 1.658.753v9.592a1 1 0 0 1-1.659.753l-5.48-4.796a1 1 0 0 1 0-1.506z"
+          />
+        </svg>
+        <span class="sr-only">Previous</span>
+      </a>
+      <!-- 다음 버튼 -->
+      <a
+        class="carousel-control-next"
+        href="#carouselExample"
+        role="button"
+        data-slide="next"
+        id="nextButton"
+        style="display: none"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="currentColor"
+          class="bi bi-caret-right-fill"
+          viewBox="0 0 16 16"
+        >
+          <path
+            d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"
+          />
+        </svg>
+        <span class="sr-only">Next</span>
+      </a>
+    </div>
 
     <!-- 로그인과 회원가입 모달창 -->
-    <div id="modalBackground" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle">로그인/회원가입</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <!-- Login Form -->
-                    <form id="loginForm" method="post" class="active-form">
-                        <!-- <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" /> -->
-                        <div class="form-group">
-                            <label for="loginUsername">이메일</label>
-                            <input type="email" id="loginUsername" name="username" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="loginPassword">비밀번호</label>
-                            <input type="password" id="loginPassword" name="password" class="form-control" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-block">로그인</button>
-                    </form>
+    <div
+      id="modalBackground"
+      class="modal fade"
+      tabindex="-1"
+      role="dialog"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalTitle">로그인/회원가입</h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <!-- Login Form -->
+            <form id="loginForm" method="post" class="active-form">
+              <!-- <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" /> -->
+              <div class="form-group">
+                <label for="loginUsername">이메일</label>
+                <input
+                  type="email"
+                  id="loginUsername"
+                  name="username"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="loginPassword">비밀번호</label>
+                <input
+                  type="password"
+                  id="loginPassword"
+                  name="password"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">
+                로그인
+              </button>
+            </form>
 
-                    <!-- Register Form -->
-                    <form id="registerForm" method="post" class="d-none">
-                        <!-- d-none 클래스는 일반적으로 Bootstrap과 같은 CSS 프레임워크에서 사용되는 클래스이며,
+            <!-- Register Form -->
+            <form id="registerForm" method="post" class="d-none">
+              <!-- d-none 클래스는 일반적으로 Bootstrap과 같은 CSS 프레임워크에서 사용되는 클래스이며,
                          이 클래스의 역할은 요소를 화면에서 숨기는 것입니다.  -->
-                        <div class="form-group">
-                            <label for="registerUsername">이메일</label>
-                            <input type="email" id="registerUsername" name="username" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="registerPassword">비밀번호</label>
-                            <input type="password" id="registerPassword" name="password" class="form-control" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-block">회원가입</button>
-                    </form>
+              <div class="form-group">
+                <label for="registerUsername">이메일</label>
+                <input
+                  type="email"
+                  id="registerUsername"
+                  name="username"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="registerPassword">비밀번호</label>
+                <input
+                  type="password"
+                  id="registerPassword"
+                  name="password"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">
+                회원가입
+              </button>
+            </form>
 
-                    <!-- Toggle Button -->
-                    <button type="button" id="toggleAuth" class="btn btn-link btn-block">회원가입</button>
-                </div>
-            </div>
+            <!-- Toggle Button -->
+            <button
+              type="button"
+              id="toggleAuth"
+              class="btn btn-link btn-block"
+            >
+              회원가입
+            </button>
+          </div>
         </div>
+      </div>
     </div>
-
-
-
 
     <!-- 영화 상세 정보 모달창 -->
-    <div id="movieDetail" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="movieDetailLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <!-- 모달 헤더 -->
-                <div class="modal-header">
-                    <!-- 뒤로 가기 버튼 추가 -->
-                    <button type="button" class="btn btn-secondary" id="backButton" style="display:none;">
-                        <i class="fa fa-arrow-left"></i> 뒤로 가기
-                    </button>
-                    <h5 class="modal-title" id="movieDetailLabel">영화 상세 정보</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <!-- 모달 본문 -->
-                <div class="modal-body"></div>
-                <!-- 모달 푸터 -->
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
-                </div>
-            </div>
+    <div
+      id="movieDetail"
+      class="modal fade"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="movieDetailLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <!-- 모달 헤더 -->
+          <div class="modal-header">
+            <!-- 뒤로 가기 버튼 추가 -->
+            <button
+              type="button"
+              class="btn btn-secondary"
+              id="backButton"
+              style="display: none"
+            >
+              <i class="fa fa-arrow-left"></i> 뒤로 가기
+            </button>
+            <h5 class="modal-title" id="movieDetailLabel">영화 상세 정보</h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <!-- 모달 본문 -->
+          <div class="modal-body"></div>
+          <!-- 모달 푸터 -->
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal"
+            >
+              닫기
+            </button>
+          </div>
         </div>
+      </div>
     </div>
-
 
     <!-- 영화인 상세 정보 모달창 -->
-    <div id="actorDetail" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="actorDetailLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <!-- 모달 헤더 -->
-                <div class="modal-header">
-                    <h5 class="modal-title" id="actorDetailLabel">영화인 상세 정보</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <!-- 모달 본문 -->
-                <div class="modal-body"></div>
-                <!-- 모달 푸터 -->
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
-                </div>
-            </div>
+    <div
+      id="actorDetail"
+      class="modal fade"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="actorDetailLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <!-- 모달 헤더 -->
+          <div class="modal-header">
+            <h5 class="modal-title" id="actorDetailLabel">영화인 상세 정보</h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <!-- 모달 본문 -->
+          <div class="modal-body"></div>
+          <!-- 모달 푸터 -->
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal"
+            >
+              닫기
+            </button>
+          </div>
         </div>
+      </div>
     </div>
-
 
     <!-- 영화 추천 모달창 -->
-    <div id="recMovie" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="recMovieLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <!-- 모달 헤더 -->
-                <div class="modal-header">
-                    <h5 class="modal-title" id="recMovieLabel">영화 추천 정보</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <!-- 모달 본문 -->
-                <div id="rec-movie-list" class="modal-body"></div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" id="prevMovie">이전</button>
-                    <button type="button" class="btn btn-primary" id="nextMovie">다음</button>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
-                </div>
-            </div>
+    <div
+      id="recMovie"
+      class="modal fade"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="recMovieLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <!-- 모달 헤더 -->
+          <div class="modal-header">
+            <h5 class="modal-title" id="recMovieLabel">영화 추천 정보</h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <!-- 모달 본문 -->
+          <div id="rec-movie-list" class="modal-body"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="prevMovie">
+              이전
+            </button>
+            <button type="button" class="btn btn-primary" id="nextMovie">
+              다음
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal"
+            >
+              닫기
+            </button>
+          </div>
         </div>
+      </div>
     </div>
-
 
     <!-- 나라 체크박스 모달창 -->
-    <div class="modal fade" id="nationModal" tabindex="-1" role="dialog" aria-labelledby="genreModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="nationModalLabel">Select ONLY ONE Nation</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+    <div
+      class="modal fade"
+      id="nationModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="genreModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="nationModalLabel">
+              Select ONLY ONE Nation
+            </h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <div id="genre-checkboxes">
+                <!-- 체크박스와 달리 라디오는 보통 하나의 선택사항만 필요할 때 사용한다 -->
+                <!-- 다른 사항들을 선택하지 않기 위해서는 자바스크립트에 이벤트를 추가한다 -->
+                <div>
+                  <input
+                    type="radio"
+                    class="nation-radio"
+                    id="22041011"
+                    value="한국"
+                  />
+                  한국
                 </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <div id="genre-checkboxes">
-                            <!-- 체크박스와 달리 라디오는 보통 하나의 선택사항만 필요할 때 사용한다 -->
-                            <!-- 다른 사항들을 선택하지 않기 위해서는 자바스크립트에 이벤트를 추가한다 -->
-                            <div><input type="radio" class="nation-radio" id="22041011" value="한국"> 한국</div>
-                            <div><input type="radio" class="nation-radio" id="22041008" value="일본"> 일본</div>
-                            <div><input type="radio" class="nation-radio" id="22044010" value="영국"> 영국</div>
-                            <div><input type="radio" class="nation-radio" id="22042002" value="미국"> 미국</div>
-                            <div><input type="radio" class="nation-radio" id="22041009" value="중국"> 중국</div>
-                        </div>
-                    </div>
+                <div>
+                  <input
+                    type="radio"
+                    class="nation-radio"
+                    id="22041008"
+                    value="일본"
+                  />
+                  일본
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <div>
+                  <input
+                    type="radio"
+                    class="nation-radio"
+                    id="22044010"
+                    value="영국"
+                  />
+                  영국
                 </div>
+                <div>
+                  <input
+                    type="radio"
+                    class="nation-radio"
+                    id="22042002"
+                    value="미국"
+                  />
+                  미국
+                </div>
+                <div>
+                  <input
+                    type="radio"
+                    class="nation-radio"
+                    id="22041009"
+                    value="중국"
+                  />
+                  중국
+                </div>
+              </div>
             </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal"
+            >
+              Close
+            </button>
+          </div>
         </div>
+      </div>
     </div>
 
-
     <script>
-        window.addEventListener('scroll', function () {
-            const header = document.getElementById('header');
-            const searchContainer = document.getElementById('search-container');
+      window.addEventListener("scroll", function () {
+        const header = document.getElementById("header");
+        const searchContainer = document.getElementById("search-container");
 
-            if (window.scrollY > header.offsetHeight) {
-                header.style.display = 'none';
-            } else {
-                header.style.display = 'flex';
+        if (window.scrollY > header.offsetHeight) {
+          header.style.display = "none";
+        } else {
+          header.style.display = "flex";
+        }
+      });
+
+      // 초기화 버튼 클릭 시 검색창들 초기화
+      document
+        .getElementById("reset-button")
+        .addEventListener("click", function () {
+          document.getElementById("title-query").value = "";
+          document.getElementById("actor-query").value = "";
+          document.getElementById("director-query").value = "";
+          document.getElementById("nation-query").value = "";
+          document.getElementById("llm-query").value = "";
+        });
+
+      // Open Modal
+      document.getElementById("openModal")?.addEventListener("click", () => {
+        // ?.addEventListener: 버튼이 존재하면 이벤트를 실행하고
+        // 버튼이 없다면 이벤트를 호출하지 않고, 예외도 발생시키지 않으며 안전하게 넘어감
+        $("#modalBackground").modal("show");
+        showLogin(); // Show login form by default
+      });
+
+      // Toggle between Login and Register forms
+      document.getElementById("toggleAuth")?.addEventListener("click", () => {
+        if (document.getElementById("loginForm").classList.contains("d-none")) {
+          showLogin();
+        } else {
+          showRegister();
+        }
+      });
+
+      // Show Login Form
+      function showLogin() {
+        document.getElementById("loginForm").classList.remove("d-none"); // d-none 클래스를 제거해서 화면에 보이게 한다
+        document.getElementById("registerForm").classList.add("d-none"); // 화면에 안 보이게 한다
+        document.getElementById("modalTitle").textContent = "로그인"; // 텍스트 요소를 변경
+        document.getElementById("toggleAuth").textContent = "회원가입";
+        document.getElementById("toggleAuth").classList.remove("d-none"); // 숨겨진 버튼을 다시 표시한다
+      }
+
+      // Show Register Form
+      function showRegister() {
+        document.getElementById("registerForm").classList.remove("d-none");
+        document.getElementById("loginForm").classList.add("d-none");
+        document.getElementById("modalTitle").textContent = "회원가입";
+        // document.getElementById('toggleAuth').textContent = 'Back to Login';
+        // Sign Up 버튼 숨기기
+        document.getElementById("toggleAuth").classList.add("d-none");
+      }
+
+      // 로그아웃 버튼 누르기
+      $("#logoutButton").on("click", function () {
+        $.ajax({
+          url: "/logout",
+          method: "GET",
+          success: function (response) {
+            if (response.status === "success") {
+              // 서버에서 반환된 리디렉션 URL로 이동
+              window.location.href = response.redirect_url;
             }
+          },
+          error: function (xhr, status, error) {
+            console.error("로그아웃 실패:", error); // 개발자용 에러 로그
+            alert("로그아웃에 실패했습니다.");
+          },
         });
+      });
 
+      // 회원 가입
+      document
+        .getElementById("registerForm")
+        ?.addEventListener("submit", function (event) {
+          event.preventDefault(); // 폼 제출 기본 동작을 방지
 
+          // 폼 데이터 추출
+          const username = document.getElementById("registerUsername").value;
+          const password = document.getElementById("registerPassword").value;
 
-
-        // 초기화 버튼 클릭 시 검색창들 초기화
-        document.getElementById('reset-button').addEventListener('click', function () {
-            document.getElementById('title-query').value = '';
-            document.getElementById('actor-query').value = '';
-            document.getElementById('director-query').value = '';
-            document.getElementById('nation-query').value = '';
-            document.getElementById('llm-query').value = '';
-        });
-
-
-
-
-        // Open Modal
-        document.getElementById('openModal')?.addEventListener('click', () => {
-            // ?.addEventListener: 버튼이 존재하면 이벤트를 실행하고
-            // 버튼이 없다면 이벤트를 호출하지 않고, 예외도 발생시키지 않으며 안전하게 넘어감 
-            $('#modalBackground').modal('show');
-            showLogin(); // Show login form by default
-        });
-
-        // Toggle between Login and Register forms
-        document.getElementById('toggleAuth')?.addEventListener('click', () => {
-            if (document.getElementById('loginForm').classList.contains('d-none')) {
+          // API 요청
+          fetch("/register", {
+            method: "POST",
+            body: new URLSearchParams({
+              username: username,
+              password: password,
+            }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.message) {
+                document.getElementById("registerUsername").value = "";
+                document.getElementById("registerPassword").value = ""; // 입력한 값을 input에서 지운다
                 showLogin();
-            } else {
-                showRegister();
-            }
+              } else {
+                alert(data.detail); // 에러 처리
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              alert("An unexpected error occurred.");
+            });
         });
 
-        // Show Login Form
-        function showLogin() {
-            document.getElementById('loginForm').classList.remove('d-none'); // d-none 클래스를 제거해서 화면에 보이게 한다 
-            document.getElementById('registerForm').classList.add('d-none'); // 화면에 안 보이게 한다 
-            document.getElementById('modalTitle').textContent = '로그인'; // 텍스트 요소를 변경 
-            document.getElementById('toggleAuth').textContent = '회원가입';
-            document.getElementById('toggleAuth').classList.remove('d-none'); // 숨겨진 버튼을 다시 표시한다 
-        }
+      // 로그인창
+      $(document).ready(function () {
+        $("#loginForm").on("submit", function (event) {
+          event.preventDefault();
+          console.log("loginForm : ");
+          const formData = $(this).serialize();
 
-        // Show Register Form
-        function showRegister() {
-            document.getElementById('registerForm').classList.remove('d-none');
-            document.getElementById('loginForm').classList.add('d-none');
-            document.getElementById('modalTitle').textContent = '회원가입';
-            // document.getElementById('toggleAuth').textContent = 'Back to Login';
-            // Sign Up 버튼 숨기기
-            document.getElementById('toggleAuth').classList.add('d-none');
-        }
+          $.ajax({
+            url: "/login",
+            method: "POST",
+            data: formData,
+            success: function (response) {
+              console.log("response.access_token : ", response.access_token);
+              // alert(response.access_token);
+              if (response.status === "success") {
+                // 로그인 성공 후 access_token 쿠키를 설정
+                document.cookie = `access_token=${response.access_token}; path=/;`;
 
+                // 로그인 폼 숨기기 및 모달 닫기
+                $("#loginForm").hide();
+                $("#modalBackground").modal("hide");
 
+                // 서버에서 반환된 리디렉션 URL로 이동
+                window.location.href = response.redirect_url;
+              }
+            },
+            error: function (xhr, status, error) {
+              console.error("로그인 실패:", error); // 개발자용 에러 로그
+              alert("로그인에 실패했습니다. 다시 시도해주세요.");
+            },
+          });
+        });
+      });
 
+      // 국가 선택 모달창에서 하나만 고르기
+      document.addEventListener("DOMContentLoaded", function () {
+        const nationRadios = document.querySelectorAll(".nation-radio");
+        const nationInput = document.getElementById("nation-query"); // 국가 표시 input 요소
 
-        // 로그아웃 버튼 누르기 
-        $('#logoutButton').on('click', function () {
-            $.ajax({
-                url: '/logout',
-                method: 'GET',
+        nationRadios.forEach((radio) => {
+          radio.addEventListener("click", function () {
+            // 선택된 라디오 버튼을 제외한 나머지 버튼들 선택 해제
+            nationRadios.forEach((r) => {
+              if (r !== this) {
+                r.checked = false;
+              }
+            });
+
+            nationInput.value = this.value;
+          });
+        });
+      });
+
+      // 검색 버튼 누르면 일어나는 이벤트
+      document.addEventListener("DOMContentLoaded", function () {
+        const searchButton = document.querySelector("#search-button");
+        const recFiveList = document.querySelector("#rec-five-list");
+
+        const showRecList = function () {
+          recFiveList.style.display = "flex"; // 검색 결과 표시
+        };
+
+        searchButton.addEventListener("click", function (event) {
+          event.preventDefault(); // 페이지 새로고침 방지
+          search(); // 검색 함수 호출
+          recListContent(); // 추천 리스트 생성
+          setTimeout(showRecList, 500); // 검색 후 약간의 지연 후에 결과 표시
+        });
+
+        document
+          .querySelector(".search-input")
+          .addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+              event.preventDefault(); // 페이지 새로고침 방지
+              search();
+              recListContent();
+              setTimeout(showRecList, 500);
+            }
+          });
+      });
+
+      // 슬라이드 자동으로 넘어가는 기능 비활성화
+      $("#carouselExample").carousel({
+        interval: false,
+      });
+
+      // let retryCount = 0;
+
+      // 검색 요청 함수
+      function search() {
+        const title = document.getElementById("title-query").value;
+        const actor = document.getElementById("actor-query").value;
+        const director = document.getElementById("director-query").value;
+        const nation = document.querySelector(".nation-radio:checked")
+          ? document.querySelector(".nation-radio:checked").id
+          : null;
+        const llm = document.getElementById("llm-query").value;
+
+        // API 요청을 위한 데이터 구성
+        const formData = {
+          title: title,
+          actor: actor,
+          director: director,
+          nation: nation,
+          llm: llm,
+        };
+
+        // 서버에 로그인 상태 확인 요청
+        $.ajax({
+          url: "/check-login", // 서버에서 로그인 상태를 확인하는 엔드포인트
+          method: "POST",
+          success: function (response) {
+            if (response.isLoggedIn) {
+              // 로그인된 상태라면, search 요청
+              $.ajax({
+                url: "/search-request",
+                method: "POST",
+                data: formData,
                 success: function (response) {
-                    if (response.status === 'success') {
-                        // 서버에서 반환된 리디렉션 URL로 이동
-                        window.location.href = response.redirect_url;
-                    }
+                  if (response.actor_list) {
+                    displayActorResults(response.actor_list);
+                  } else if (response.movie_list) {
+                    displayResults(response.movie_list);
+                  } else if (response.llmAnswer) {
+                    fetchLlmAnswer(response.llmAnswer);
+                  }
                 },
                 error: function (xhr, status, error) {
-                    console.error('로그아웃 실패:', error); // 개발자용 에러 로그
-                    alert('로그아웃에 실패했습니다.');
-                }
-            });
-        });
-
-
-
-
-        // 회원 가입 
-        document.getElementById('registerForm')?.addEventListener('submit', function (event) {
-            event.preventDefault(); // 폼 제출 기본 동작을 방지
-
-            // 폼 데이터 추출
-            const username = document.getElementById('registerUsername').value;
-            const password = document.getElementById('registerPassword').value;
-
-            // API 요청
-            fetch('/register', {
-                method: 'POST',
-                body: new URLSearchParams({
-                    username: username,
-                    password: password,
-                })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.message) {
-                        document.getElementById('registerUsername').value = '';
-                        document.getElementById('registerPassword').value = ''; // 입력한 값을 input에서 지운다 
-                        showLogin();
-                    } else {
-                        alert(data.detail); // 에러 처리
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An unexpected error occurred.');
-                });
-        });
-
-
-        // 로그인창 
-        $(document).ready(function () {
-            $('#loginForm').on('submit', function (event) {
-                event.preventDefault();
-                console.log('loginForm : ');
-                const formData = $(this).serialize();
-
-                $.ajax({
-                    url: '/login',
-                    method: 'POST',
-                    data: formData,
-                    success: function (response) {
-                        console.log('response.access_token : ', response.access_token);
-                        // alert(response.access_token);
-                        if (response.status === 'success') {
-
-                            // 로그인 성공 후 access_token 쿠키를 설정 
-                            document.cookie = `access_token=${response.access_token}; path=/;`;
-
-                            // 로그인 폼 숨기기 및 모달 닫기
-                            $('#loginForm').hide();
-                            $('#modalBackground').modal('hide');
-
-                            // 서버에서 반환된 리디렉션 URL로 이동
-                            window.location.href = response.redirect_url;
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error('로그인 실패:', error); // 개발자용 에러 로그
-                        alert('로그인에 실패했습니다. 다시 시도해주세요.');
-                    }
-                });
-            });
-        });
-
-
-
-
-        // 국가 선택 모달창에서 하나만 고르기 
-        document.addEventListener('DOMContentLoaded', function () {
-            const nationRadios = document.querySelectorAll('.nation-radio');
-            const nationInput = document.getElementById('nation-query'); // 국가 표시 input 요소
-
-            nationRadios.forEach(radio => {
-                radio.addEventListener('click', function () {
-                    // 선택된 라디오 버튼을 제외한 나머지 버튼들 선택 해제
-                    nationRadios.forEach(r => {
-                        if (r !== this) {
-                            r.checked = false;
-                        }
-                    });
-
-                    nationInput.value = this.value;
-                });
-            });
-        });
-
-
-
-
-        // 검색 버튼 누르면 일어나는 이벤트 
-        document.addEventListener('DOMContentLoaded', function () {
-            const searchButton = document.querySelector('#search-button');
-            const recFiveList = document.querySelector('#rec-five-list');
-
-            const showRecList = function () {
-                recFiveList.style.display = 'flex';  // 검색 결과 표시
-            };
-
-            searchButton.addEventListener('click', function (event) {
-                event.preventDefault();  // 페이지 새로고침 방지
-                search();  // 검색 함수 호출
-                recListContent();  // 추천 리스트 생성
-                setTimeout(showRecList, 500);  // 검색 후 약간의 지연 후에 결과 표시
-            });
-
-            document.querySelector('.search-input').addEventListener('keydown', function (event) {
-                if (event.key === 'Enter') {
-                    event.preventDefault();  // 페이지 새로고침 방지
-                    search();
-                    recListContent();
-                    setTimeout(showRecList, 500);
-                }
-            });
-        });
-
-
-
-
-
-
-        // 슬라이드 자동으로 넘어가는 기능 비활성화 
-        $('#carouselExample').carousel({
-            interval: false
-        });
-
-
-
-
-        // let retryCount = 0;
-
-        // 검색 요청 함수
-        function search() {
-            const title = document.getElementById('title-query').value;
-            const actor = document.getElementById('actor-query').value;
-            const director = document.getElementById('director-query').value;
-            const nation = document.querySelector('.nation-radio:checked') ? document.querySelector('.nation-radio:checked').id : null;
-            const llm = document.getElementById('llm-query').value;
-
-            // API 요청을 위한 데이터 구성
-            const formData = {
-                title: title,
-                actor: actor,
-                director: director,
-                nation: nation,
-                llm: llm
-            };
-
-            // 서버에 로그인 상태 확인 요청
-            $.ajax({
-                url: '/check-login',  // 서버에서 로그인 상태를 확인하는 엔드포인트
-                method: 'POST',
-                success: function (response) {
-                    if (response.isLoggedIn) {
-                        // 로그인된 상태라면, search 요청
-                        $.ajax({
-                            url: '/search-request',
-                            method: 'POST',
-                            data: formData,
-                            success: function (response) {
-                                if (response.actor_list) {
-                                    displayActorResults(response.actor_list);
-                                    // console.log("displayActorResults");
-                                } else if (response.movie_list) {
-                                    displayResults(response.movie_list);
-                                } else if (response.llmAnswer) {
-                                    fetchLlmAnswer(response.llmAnswer);
-                                }
-                            },
-                            error: function (xhr, status, error) {
-                                console.error('API 호출 실패:', error);
-                            }
-                        });
-                    } else {
-                        // 로그인되지 않으면 모달 띄우기
-                        $('#modalBackground').modal('show');
-                    }
-                }
-            });
-        }
-
-
-        function fetchLlmAnswer(querys) {
-            // 사용자 입력 값 가져오기
-            // const resultsContainer = document.getElementById('movie-list');
-            // resultsContainer.innerHTML = ''; // 기존 결과 초기화
-
-            // if (querys.length === 0) {
-            //     resultsContainer.innerHTML = '<p>인공지능이 대답을 거부합니다.</p>';
-            // }
-
-            const query = querys; // querys가 하나의 값이라면 그대로 사용
-            // const queryHTML = `
-            //     <p hidden><strong>answer:</strong> ${query}</p>
-            // `;
-            // resultsContainer.innerHTML = queryHTML;
-
-            try {
-                // 백틱(```)이 포함되어 있으면 제거 (1개 이상 백틱을 처리)
-                let jsonPart = query.replace(/^`+/g, '').replace(/`+$/g, '').trim();
-                // console.log("jsonPart (백틱 제거 후):", jsonPart);
-
-                // 중괄호 밖에 있는 단어 제거 (중괄호 안의 JSON만 추출)
-                // 중괄호 앞뒤 공백을 처리한 후 정규식으로 JSON 객체 추출
-                const jsonMatch = jsonPart.match(/^\{.*\}$/s);  // 's' 플래그를 사용하여 줄바꿈까지 포함 가능
-                console.log("jsonMatch:", jsonMatch);
-
-                if (jsonMatch) {
-                    jsonPart = jsonMatch[0]; // 중괄호 안의 부분만 추출
-                } else {
-                    throw new Error('유효한 JSON 형식이 아닙니다.');
-                }
-
-                // 중괄호 밖의 불필요한 공백 제거
-                jsonPart = jsonPart.replace(/^\s+|\s+$/g, '');
-                // console.log("JSON 데이터 확인:", jsonPart);
-
-                // JSON으로 변환
-                const parsedQuery = JSON.parse(jsonPart);
-                console.log("parsed query:", parsedQuery);
-
-                // 키와 값 매칭 및 검색창 입력
-                if (parsedQuery["제목"] && parsedQuery["제목"] !== null) {
-                    document.getElementById('title-query').value = parsedQuery["제목"];
-                }
-                if (parsedQuery["감독"] && parsedQuery["감독"] !== null) {
-                    document.getElementById('director-query').value = parsedQuery["감독"];
-                }
-                if (parsedQuery["배우"] && parsedQuery["배우"] !== null) {
-                    document.getElementById('actor-query').value = parsedQuery["배우"];
-                }
-
-                // 국가가 있는 경우 nation-query에 표시하고, 해당 국가 라디오 버튼 체크
-                if (parsedQuery["국가"] && parsedQuery["국가"] !== null) {
-                    const nationValue = parsedQuery["국가"]; // 국가 값 (예: "한국")
-                    const nationInput = document.getElementById('nation-query'); // 국가 표시 input 요소
-                    nationInput.value = nationValue; // 국가 이름을 input에 표시
-
-                    // 해당 국가 라디오 버튼을 체크
-                    const nationRadios = document.querySelectorAll('.nation-radio');
-                    nationRadios.forEach(radio => {
-                        if (radio.value === nationValue) {
-                            radio.checked = true;
-                        }
-                    });
-                }
-                document.getElementById('llm-query').value = '';
-                search();
-
-            } catch (error) {
-                console.error('JSON 파싱 실패:', error);
-                // resultsContainer.innerHTML += '<p>응답을 처리하는 데 실패했습니다</p>';
+                  console.error("API 호출 실패:", error);
+                },
+              });
+            } else {
+              // 로그인되지 않으면 모달 띄우기
+              $("#modalBackground").modal("show");
             }
+          },
+        });
+      }
+
+      function fetchLlmAnswer(querys) {
+        // 사용자 입력 값 가져오기
+        // const resultsContainer = document.getElementById('movie-list');
+        // resultsContainer.innerHTML = ''; // 기존 결과 초기화
+
+        // if (querys.length === 0) {
+        //     resultsContainer.innerHTML = '<p>인공지능이 대답을 거부합니다.</p>';
+        // }
+
+        const query = querys; // querys가 하나의 값이라면 그대로 사용
+        // const queryHTML = `
+        //     <p hidden><strong>answer:</strong> ${query}</p>
+        // `;
+        // resultsContainer.innerHTML = queryHTML;
+
+        try {
+          // 백틱(```)이 포함되어 있으면 제거 (1개 이상 백틱을 처리)
+          let jsonPart = query.replace(/^`+/g, "").replace(/`+$/g, "").trim();
+          // console.log("jsonPart (백틱 제거 후):", jsonPart);
+
+          // 중괄호 밖에 있는 단어 제거 (중괄호 안의 JSON만 추출)
+          // 중괄호 앞뒤 공백을 처리한 후 정규식으로 JSON 객체 추출
+          const jsonMatch = jsonPart.match(/^\{.*\}$/s); // 's' 플래그를 사용하여 줄바꿈까지 포함 가능
+          console.log("jsonMatch:", jsonMatch);
+
+          if (jsonMatch) {
+            jsonPart = jsonMatch[0]; // 중괄호 안의 부분만 추출
+          } else {
+            throw new Error("유효한 JSON 형식이 아닙니다.");
+          }
+
+          // 중괄호 밖의 불필요한 공백 제거
+          jsonPart = jsonPart.replace(/^\s+|\s+$/g, "");
+          // console.log("JSON 데이터 확인:", jsonPart);
+
+          // JSON으로 변환
+          const parsedQuery = JSON.parse(jsonPart);
+          console.log("parsed query:", parsedQuery);
+
+          // 키와 값 매칭 및 검색창 입력
+          if (parsedQuery["제목"] && parsedQuery["제목"] !== null) {
+            document.getElementById("title-query").value = parsedQuery["제목"];
+          }
+          if (parsedQuery["감독"] && parsedQuery["감독"] !== null) {
+            document.getElementById("director-query").value =
+              parsedQuery["감독"];
+          }
+          if (parsedQuery["배우"] && parsedQuery["배우"] !== null) {
+            document.getElementById("actor-query").value = parsedQuery["배우"];
+          }
+
+          // 국가가 있는 경우 nation-query에 표시하고, 해당 국가 라디오 버튼 체크
+          if (parsedQuery["국가"] && parsedQuery["국가"] !== null) {
+            const nationValue = parsedQuery["국가"]; // 국가 값 (예: "한국")
+            const nationInput = document.getElementById("nation-query"); // 국가 표시 input 요소
+            nationInput.value = nationValue; // 국가 이름을 input에 표시
+
+            // 해당 국가 라디오 버튼을 체크
+            const nationRadios = document.querySelectorAll(".nation-radio");
+            nationRadios.forEach((radio) => {
+              if (radio.value === nationValue) {
+                radio.checked = true;
+              }
+            });
+          }
+          search();
+          document.getElementById("llm-query").value = "";
+        } catch (error) {
+          console.error("JSON 파싱 실패:", error);
+          // resultsContainer.innerHTML += '<p>응답을 처리하는 데 실패했습니다</p>';
+        }
+      }
+
+      // 검색창 초기화 함수
+      function resetSearchFields() {
+        document.getElementById("title-query").value = "";
+        document.getElementById("actor-query").value = "";
+        document.getElementById("director-query").value = "";
+        document.getElementById("nation-query").value = "";
+        // llm-query는 초기화하지 않음
+      }
+
+      // <p><strong>영화 코드:</strong> ${movie.movieCd}</p>
+      //         <p><strong>영어 제목:</strong> ${movie.movieNmEn}</p>
+      //         <p><strong>개봉일:</strong> ${movie.openDt}</p>
+      //         <p><strong>영화 유형:</strong> ${movie.typeNm}</p>
+      //         <p><strong>제작 상태:</strong> ${movie.prdtStatNm}</p>
+      //         <p><strong>제작 국가:</strong> ${movie.nationAlt}</p>
+      //         <p><strong>장르:</strong> ${movie.genreAlt}</p>
+      //         <p><strong>대표 제작국가:</strong> ${movie.repNationNm}</p>
+      //         <p><strong>대표 장르:</strong> ${movie.repGenreNm}</p>
+      //         <p><strong>감독:</strong> ${movie.directors.map(director => director.peopleNm).join(", ")}</p>
+      //         <p><strong>제작사 코드:</strong> ${movie.companys.map(company => company.companyCd).join(", ")}</p>
+      //         <p><strong>제작사명:</strong> ${movie.companys.map(company => company.companyNm).join(", ")}</p>
+
+      function calculateItemsPerPage() {
+        const preContainerWidth = window.innerWidth;
+        const prevButton = document.getElementById("prevButton");
+        const nextButton = document.getElementById("nextButton");
+
+        // prevButton과 nextButton의 너비를 구함
+        const buttonsWidth = prevButton
+          ? prevButton.getBoundingClientRect().width
+          : 0;
+        const nextButtonsWidth = nextButton
+          ? nextButton.getBoundingClientRect().width
+          : 0;
+
+        // containerWidth에서 버튼들의 너비를 빼서 항목을 배치할 너비를 계산
+        const containerWidth =
+          preContainerWidth - (buttonsWidth + nextButtonsWidth);
+        const containerHeight = window.innerHeight;
+
+        const maxWidth = 200; // 최대 가로 길이
+        const maxHeight = 280; // 최대 세로 길이
+        const aspectRatio = 1.4; // 가로와 세로의 비율
+
+        // 화면 비율에 맞게 크기 계산
+        let itemWidth = maxWidth;
+        let itemHeight = maxHeight;
+
+        if (containerWidth < maxWidth || containerHeight < maxHeight) {
+          e = containerWidth / maxWidth;
+          const heightScale = containerHeight / maxHeight;
+          const widthScale = containerWidth / maxWidth;
+
+          // 가장 작은 비율에 맞게 크기 조정
+          const scale = Math.min(widthScale, heightScale);
+
+          itemWidth = maxWidth * scale;
+          itemHeight = maxHeight * scale;
         }
 
+        const gap = 20; // 간격
 
+        // 한 행에 몇 개의 항목을 표시할 수 있을지 계산
+        const itemsPerRow = Math.floor(
+          (containerWidth - gap) / (itemWidth + gap)
+        );
 
+        // 한 페이지에 표시되는 항목 수는 itemsPerRow * 1 (row는 1로 고정)
+        return itemsPerRow * 1;
+      }
 
-        // 검색창 초기화 함수
-        function resetSearchFields() {
-            document.getElementById('title-query').value = '';
-            document.getElementById('actor-query').value = '';
-            document.getElementById('director-query').value = '';
-            document.getElementById('nation-query').value = '';
-            // llm-query는 초기화하지 않음
+      // 리스트 항목을 carousel 페이지로 나누어 표시하는 함수
+      function createCarouselPages(items, targetId, className) {
+        const carouselInner = document.getElementById(targetId);
+        carouselInner.innerHTML = ""; // 초기화
+
+        const itemsPerPage = calculateItemsPerPage(); // 화면 크기에 맞게 계산
+        console.log("itemsPerPage: ", itemsPerPage);
+        const totalPages = Math.ceil(items.length / itemsPerPage);
+        console.log("items.length: ", items.length);
+        console.log("total page: ", totalPages);
+
+        const prevButton = document.getElementById("prevButton");
+        const nextButton = document.getElementById("nextButton");
+
+        // 페이지 수가 1개 이하일 경우 버튼을 숨김
+        if (totalPages <= 1) {
+          prevButton.style.display = "none";
+          nextButton.style.display = "none";
+        } else {
+          prevButton.style.display = "block";
+          nextButton.style.display = "block";
         }
 
+        for (let page = 0; page < totalPages; page++) {
+          const carouselItem = document.createElement("div");
+          carouselItem.className = `carousel-item${
+            page === 0 ? " active" : ""
+          }`;
 
+          const listWrapper = document.createElement("div");
+          listWrapper.className = className; // movie-top-list 또는 actor-top-list
 
+          const start = page * itemsPerPage;
+          const end = start + itemsPerPage;
+          items.slice(start, end).forEach((item) => {
+            const listItem = document.createElement("div");
+            listItem.innerHTML = item; // HTML 내용 추가
+            listWrapper.appendChild(listItem);
+          });
 
-
-        // <p><strong>영화 코드:</strong> ${movie.movieCd}</p>
-        //         <p><strong>영어 제목:</strong> ${movie.movieNmEn}</p>
-        //         <p><strong>개봉일:</strong> ${movie.openDt}</p>
-        //         <p><strong>영화 유형:</strong> ${movie.typeNm}</p>
-        //         <p><strong>제작 상태:</strong> ${movie.prdtStatNm}</p>
-        //         <p><strong>제작 국가:</strong> ${movie.nationAlt}</p>
-        //         <p><strong>장르:</strong> ${movie.genreAlt}</p>
-        //         <p><strong>대표 제작국가:</strong> ${movie.repNationNm}</p>
-        //         <p><strong>대표 장르:</strong> ${movie.repGenreNm}</p>
-        //         <p><strong>감독:</strong> ${movie.directors.map(director => director.peopleNm).join(", ")}</p>
-        //         <p><strong>제작사 코드:</strong> ${movie.companys.map(company => company.companyCd).join(", ")}</p>
-        //         <p><strong>제작사명:</strong> ${movie.companys.map(company => company.companyNm).join(", ")}</p>
-
-
-
-
-        function calculateItemsPerPage() {
-            const containerWidth = window.innerWidth;
-            const containerHeight = window.innerHeight;
-            
-            const maxWidth = 200;   // 최대 가로 길이
-            const maxHeight = 280;  // 최대 세로 길이
-            const aspectRatio = 1.4; // 가로와 세로의 비율
-
-            // 화면 비율에 맞게 크기 계산
-            let itemWidth = maxWidth;
-            let itemHeight = maxHeight;
-
-            if (containerWidth < maxWidth || containerHeight < maxHeight) {
-                const widthScale = containerWidth / maxWidth;
-                const heightScale = containerHeight / maxHeight;
-
-                // 가장 작은 비율에 맞게 크기 조정
-                const scale = Math.min(widthScale, heightScale);
-                
-                itemWidth = maxWidth * scale;
-                itemHeight = maxHeight * scale;
-            }
-
-            const gap = 20; // 간격
-
-            // 한 행에 몇 개의 항목을 표시할 수 있을지 계산
-            const itemsPerRow = Math.floor((containerWidth - gap) / (itemWidth + gap));
-
-            // 한 페이지에 표시되는 항목 수는 itemsPerRow * 1 (row는 1로 고정)
-            return itemsPerRow * 1;
+          carouselItem.appendChild(listWrapper);
+          carouselInner.appendChild(carouselItem);
         }
 
-
-        // 리스트 항목을 carousel 페이지로 나누어 표시하는 함수
-        function createCarouselPages(items, targetId, className) {
-            const carouselInner = document.getElementById(targetId);
-            carouselInner.innerHTML = '';  // 초기화
-
-            const itemsPerPage = calculateItemsPerPage();  // 화면 크기에 맞게 계산
-            const totalPages = Math.ceil(items.length / itemsPerPage);
-
-            for (let page = 0; page < totalPages; page++) {
-                const carouselItem = document.createElement('div');
-                carouselItem.className = `carousel-item${page === 0 ? ' active' : ''}`;
-
-                const listWrapper = document.createElement('div');
-                listWrapper.className = className;  // movie-top-list 또는 actor-top-list
-
-                const start = page * itemsPerPage;
-                const end = start + itemsPerPage;
-                items.slice(start, end).forEach(item => {
-                    const listItem = document.createElement('div');
-                    listItem.innerHTML = item;  // HTML 내용 추가
-                    listWrapper.appendChild(listItem);
-                });
-
-                carouselItem.appendChild(listWrapper);
-                carouselInner.appendChild(carouselItem);
-            }
-
+        // 마지막 페이지인 경우 nextButton 숨기기
+        if (
+          carouselInner
+            .querySelector(".carousel-item.active")
+            .classList.contains("active") &&
+          totalPages === 1
+        ) {
+          nextButton.style.display = "none";
         }
+      }
 
-        let savedMovieData = [];
-        let savedActorData = [];
+      let savedMovieData = [];
+      let savedActorData = [];
+      let savedRecData = [];
 
-        function displayResults(movies) {
-            const resultsContainer = document.getElementById('carousel-inner');
-            resultsContainer.innerHTML = ''; // 기존 결과 초기화
+      function displayResults(movies) {
+        const resultsContainer = document.getElementById("carousel-inner");
+        resultsContainer.innerHTML = ""; // 기존 결과 초기화
 
-            const movieItems = movies.map(movie => `
+        const movieItems = movies.map(
+          (movie) => `
                 <div class="movie-list" data-movieCd="${movie.movieCd}">
                     <h5>${movie.movieNm} <br> (${movie.prdtYear})</h5>
                 </div>
-            `);
-            
-            resultsContainer.innerHTML = movieItems.join('');
-            savedMovieData = movieItems;
-            createCarouselPages(savedMovieData, 'carousel-inner', 'movie-top-list');
-        }
+            `
+        );
 
+        resultsContainer.innerHTML = movieItems.join("");
+        savedMovieData = movieItems;
+        createCarouselPages(savedMovieData, "carousel-inner", "movie-top-list");
+      }
 
-        function displayActorResults(actorData) {
-            const resultsContainer = document.getElementById('carousel-inner');
-            resultsContainer.innerHTML = ''; // 기존 결과 초기화
+      function displayActorResults(actorData) {
+        const resultsContainer = document.getElementById("carousel-inner");
+        resultsContainer.innerHTML = ""; // 기존 결과 초기화
 
-            const actorItems = actorData.map(actor => {
-                // '배우' 또는 '감독'만 출력하도록 조건 추가
-                if (actor.repRoleNm === '배우' || actor.repRoleNm === '감독') {
-                    const movieTitles = actor.filmoNames.split("|").join(", ");
-                    return `
+        const actorItems = actorData
+          .map((actor) => {
+            // '배우' 또는 '감독'만 출력하도록 조건 추가
+            if (actor.repRoleNm === "배우" || actor.repRoleNm === "감독") {
+              const movieTitles = actor.filmoNames.split("|").join(", ");
+              return `
                 <div class="actor-list" data-actorCd="${actor.peopleCd}">
                     <h3>${actor.peopleNm} (${actor.peopleNmEn})</h3>
                     <p><strong>영화인 코드:</strong> ${actor.peopleCd}</p>
@@ -771,72 +1077,90 @@
                     <p><strong>참여 영화:</strong> ${movieTitles}</p>
                 </div>
             `;
-                }
-                return '';
-            }).filter(item => item !== '');  // 빈 항목 제외
+            }
+            return "";
+          })
+          .filter((item) => item !== ""); // 빈 항목 제외
 
-            resultsContainer.innerHTML = actorItems.join('');
-            savedActorData = actorItems;
-            createCarouselPages(savedActorData, 'carousel-inner', 'actor-top-list');
-        }
+        resultsContainer.innerHTML = actorItems.join("");
+        savedActorData = actorItems;
+        createCarouselPages(savedActorData, "carousel-inner", "actor-top-list");
+      }
 
+      let resizeTimeout;
 
+      window.addEventListener("resize", (event) => {
+        // 이전 타이머를 클리어하고 새로운 타이머를 설정
+        clearTimeout(resizeTimeout);
 
+        resizeTimeout = setTimeout(() => {
+          // 영화 데이터에 대해 carousel 페이지 생성
+          if (savedMovieData && savedMovieData.length > 0) {
+            createCarouselPages(
+              savedMovieData,
+              "carousel-inner",
+              "movie-top-list"
+            );
+          }
 
-        let resizeTimeout;
+          // 배우 데이터에 대해 carousel 페이지 생성
+          if (savedActorData && savedActorData.length > 0) {
+            createCarouselPages(
+              savedActorData,
+              "carousel-inner",
+              "actor-top-list"
+            );
+          }
 
-        window.addEventListener('resize', event => {
-            // 이전 타이머를 클리어하고 새로운 타이머를 설정
-            clearTimeout(resizeTimeout);
+          // 배우 데이터에 대해 carousel 페이지 생성
+          if (savedRecData && savedRecData.length > 0) {
+            createCarouselPages(
+              savedRecData,
+              "rec-five-list",
+              "movie-top-list"
+            );
+          }
+        }, 500); // 500ms 후에 실행
+      });
 
-            resizeTimeout = setTimeout(() => {
-                // 영화 데이터에 대해 carousel 페이지 생성
-                if (savedMovieData && savedMovieData.length > 0) {
-                    createCarouselPages(savedMovieData, 'carousel-inner', 'movie-top-list');
-                }
+      // 영화인 상세 정보 모달창
+      $(document).ready(function () {
+        $(document).on("click", ".actor-list", function () {
+          const peopleCd = $(this).closest(".actor-list").data("actorcd");
+          console.log(`Selected Actor Code: ${peopleCd}`);
 
-                // 배우 데이터에 대해 carousel 페이지 생성
-                if (savedActorData && savedActorData.length > 0) {
-                    createCarouselPages(savedActorData, 'carousel-inner', 'actor-top-list');
-                }
-            }, 500); // 500ms 후에 실행
-        });
+          $.ajax({
+            url: `/actorDetails/${peopleCd}`,
+            method: "GET",
+            dataType: "json",
+            success: function (data) {
+              if (
+                data &&
+                data.peopleInfoResult &&
+                data.peopleInfoResult.peopleInfo
+              ) {
+                const actor = data.peopleInfoResult.peopleInfo;
 
-
-
-
-
-
-        // 영화인 상세 정보 모달창 
-        $(document).ready(function () {
-            $(document).on('click', '.actor-list', function () {
-                const peopleCd = $(this).closest('.actor-list').data('actorcd');
-                console.log(`Selected Actor Code: ${peopleCd}`);
-
-                $.ajax({
-                    url: `/actorDetails/${peopleCd}`,
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function (data) {
-                        if (data && data.peopleInfoResult && data.peopleInfoResult.peopleInfo) {
-                            const actor = data.peopleInfoResult.peopleInfo;
-
-                            // 기본 정보 출력
-                            const modalContent = `
+                // 기본 정보 출력
+                const modalContent = `
                         <h3>${actor.peopleNm}</h3>
                         <p><strong>영화인 코드:</strong> ${actor.peopleCd}</p>
-                        <p><strong>영화인명(영문):</strong> ${actor.peopleNmEn || 'N/A'}</p>
-                        <p><strong>성별:</strong> ${actor.sex || 'N/A'}</p>
-                        <p><strong>영화인 분류명:</strong> ${actor.repRoleNm || 'N/A'}</p>
+                        <p><strong>영화인명(영문):</strong> ${
+                          actor.peopleNmEn || "N/A"
+                        }</p>
+                        <p><strong>성별:</strong> ${actor.sex || "N/A"}</p>
+                        <p><strong>영화인 분류명:</strong> ${
+                          actor.repRoleNm || "N/A"
+                        }</p>
                     `;
 
-                            // 필모그래피 생성
-                            let filmographyContent = '<h4>영화인 필모그래피</h4>';
-                            filmographyContent += '<div class="filmography-grid">';  // 그리드 시작
+                // 필모그래피 생성
+                let filmographyContent = "<h4>영화인 필모그래피</h4>";
+                filmographyContent += '<div class="filmography-grid">'; // 그리드 시작
 
-                            if (actor.filmos && actor.filmos.length > 0) {
-                                actor.filmos.forEach(film => {
-                                    filmographyContent += `
+                if (actor.filmos && actor.filmos.length > 0) {
+                  actor.filmos.forEach((film) => {
+                    filmographyContent += `
                                 <div class="film-item">
                                     <div class="film-box" data-moviecd="${film.movieCd}">
                                         <h6>${film.movieNm}</h6> 
@@ -847,38 +1171,44 @@
                                     </div>
                                 </div>
                             `;
-                                });
-                            } else {
-                                filmographyContent += '<div class="film-item">필모그래피 정보가 없습니다.</div>';
-                            }
+                  });
+                } else {
+                  filmographyContent +=
+                    '<div class="film-item">필모그래피 정보가 없습니다.</div>';
+                }
 
-                            filmographyContent += '</div>';  // 그리드 끝
+                filmographyContent += "</div>"; // 그리드 끝
 
-                            // 결합된 콘텐츠를 모달에 출력
-                            $('#actorDetail .modal-body').html(modalContent + filmographyContent);
-                            $('#actorDetail').modal('show');
-                        }
-                    },
-                    error: function () {
-                        alert('데이터를 불러오는 중 오류가 발생했습니다.');
-                    }
-                });
-            });
+                // 결합된 콘텐츠를 모달에 출력
+                $("#actorDetail .modal-body").html(
+                  modalContent + filmographyContent
+                );
+                $("#actorDetail").modal("show");
+              }
+            },
+            error: function () {
+              alert("데이터를 불러오는 중 오류가 발생했습니다.");
+            },
+          });
         });
+      });
 
+      // 영화 상세 정보 모달을 여는 공통 함수
+      function openMovieDetailModal(movieCd) {
+        $.ajax({
+          url: `/movieDetails/${movieCd}`,
+          method: "GET",
+          dataType: "json",
+          success: function (data) {
+            if (
+              data &&
+              data.movieInfoResult &&
+              data.movieInfoResult.movieInfo
+            ) {
+              const movie = data.movieInfoResult.movieInfo;
 
-        // 영화 상세 정보 모달을 여는 공통 함수
-        function openMovieDetailModal(movieCd) {
-            $.ajax({
-                url: `/movieDetails/${movieCd}`,
-                method: 'GET',
-                dataType: 'json',
-                success: function (data) {
-                    if (data && data.movieInfoResult && data.movieInfoResult.movieInfo) {
-                        const movie = data.movieInfoResult.movieInfo;
-
-                        // 영화 정보 모달에 표시하기
-                        const modalContent = `
+              // 영화 정보 모달에 표시하기
+              const modalContent = `
                     <h3>${movie.movieNm}</h3>
                     <p><strong>영화코드:</strong> ${movie.movieCd}</p>
                     <p><strong>영화명(영문):</strong> ${movie.movieNmEn}</p>
@@ -887,258 +1217,300 @@
                     <p><strong>개봉일:</strong> ${movie.openDt}</p>
                     <p><strong>제작상태:</strong> ${movie.prdtStatNm}</p>
                     <p><strong>영화유형:</strong> ${movie.typeNm}</p>
-                    <p><strong>제작국가:</strong> ${movie.nations.map(nation => nation.nationNm).join(", ")}</p>
-                    <p><strong>장르:</strong> ${movie.genres.map(genre => genre.genreNm).join(", ")}</p>
-                    <p><strong>감독:</strong> ${movie.directors.map(director => director.peopleNm).join(", ")}</p>
-                    <p><strong>배우:</strong> ${movie.actors.map(actor => actor.peopleNm).join(", ")}</p>
+                    <p><strong>제작국가:</strong> ${movie.nations
+                      .map((nation) => nation.nationNm)
+                      .join(", ")}</p>
+                    <p><strong>장르:</strong> ${movie.genres
+                      .map((genre) => genre.genreNm)
+                      .join(", ")}</p>
+                    <p><strong>감독:</strong> ${movie.directors
+                      .map((director) => director.peopleNm)
+                      .join(", ")}</p>
+                    <p><strong>배우:</strong> ${movie.actors
+                      .map((actor) => actor.peopleNm)
+                      .join(", ")}</p>
                     <p><strong>심의정보:</strong></p>
-                    ${movie.audits.map(audit => `
+                    ${movie.audits
+                      .map(
+                        (audit) => `
                         <p> - 심의번호: ${audit.auditNo}, 관람등급: ${audit.watchGradeNm}</p>
-                    `).join("")}
-                    ${movie.companys.map(company => `
+                    `
+                      )
+                      .join("")}
+                    ${movie.companys
+                      .map(
+                        (company) => `
                         <p><strong>${company.companyPartNm}:</strong> ${company.companyNm} (${company.companyNmEn})</p>
-                    `).join("")}
+                    `
+                      )
+                      .join("")}
                 `;
-                        $('#movieDetail .modal-body').html(modalContent);
-                        $('#movieDetail').modal('show');
+              $("#movieDetail .modal-body").html(modalContent);
+              $("#movieDetail").modal("show");
 
-                        // 서버로 전송할 데이터 구성
-                        const payload = {
-                            code: movie.movieCd, // 영화 코드
-                            title: movie.movieNm, // 영화명 (국문)
-                            director: movie.directors.map(director => director.peopleNm).join(", "), // 감독
-                            actor: movie.actors.map(actor => actor.peopleNm).join(", "), // 배우
-                            genre: movie.genres.map(genre => genre.genreNm).join(", "), // 장르
-                            nation: movie.nations.map(nation => nation.nationNm).join(", ") // 제작국가
-                        };
+              // 서버로 전송할 데이터 구성
+              const payload = {
+                code: movie.movieCd, // 영화 코드
+                title: movie.movieNm, // 영화명 (국문)
+                director: movie.directors
+                  .map((director) => director.peopleNm)
+                  .join(", "), // 감독
+                actor: movie.actors.map((actor) => actor.peopleNm).join(", "), // 배우
+                genre: movie.genres.map((genre) => genre.genreNm).join(", "), // 장르
+                nation: movie.nations
+                  .map((nation) => nation.nationNm)
+                  .join(", "), // 제작국가
+              };
 
-                        // console.log(payload);
-                        console.log("Payload:", JSON.stringify(payload));  // Payload 내용 확인
+              // console.log(payload);
+              console.log("Payload:", JSON.stringify(payload)); // Payload 내용 확인
 
-                        // `payload`를 서버로 전송
-                        $.ajax({
-                            url: `/save/${movieCd}`,
-                            method: 'POST',
-                            contentType: 'application/json',
-                            data: JSON.stringify(payload),
-                            success: function (response) {
-                                console.log('영화 정보가 저장되었습니다.');
-                                console.log(response);
-                            },
-                            error: function (xhr, status, error) {
-                                console.error('영화 정보 저장 중 오류 발생:', error);
-                                console.error(xhr);
-                                console.error(status);
-                            }
-                        });
-                    }
+              // `payload`를 서버로 전송
+              $.ajax({
+                url: `/save/${movieCd}`,
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(payload),
+                success: function (response) {
+                  console.log("영화 정보가 저장되었습니다.");
+                  console.log(response);
                 },
-                error: function () {
-                    alert('영화 정보를 불러오는 중 오류가 발생했습니다.');
-                }
-            });
-        }
-
-        // 뒤로 가기 버튼을 표시하는 함수
-        function showBackButton() {
-            $('#backButton').show();
-        }
-
-        // 영화 리스트 항목 클릭 이벤트
-        $(document).on('click', '.movie-list', function () {
-            const movieCd = $(this).closest('.movie-list').data('moviecd');
-            console.log(`Selected Movie Code: ${movieCd}`);
-            openMovieDetailModal(movieCd);
-        });
-
-        // 필모그래피 항목 클릭 시, actorDetail 모달 닫고 movieDetail 모달 열기
-        $(document).on('click', '.film-item', function () {
-            const movieCd = $(this).find('.film-box').data('moviecd');  // 영화 코드 가져오기
-            console.log(`Selected Movie Code from Film Item: ${movieCd}`);
-
-            // actorDetail 모달 닫기
-            $('#actorDetail').modal('hide');
-
-            // 영화 상세 정보를 가져오는 공통 함수 호출
-            openMovieDetailModal(movieCd);
-            showBackButton();
-
-            // 뒤로 가기 버튼 클릭 시 actorDetail 모달 닫고, 이전 모달 열기
-            $('#backButton').on('click', function () {
-                // actorDetail 모달 닫기
-                $('#movieDetail').modal('hide');
-                $('#actorDetail').modal('show');
-            });
-        });
-
-
-
-
-        let currentIndex = 0;
-
-        async function showMovieDetails(urls) {
-            const movieListDiv = document.getElementById('rec-movie-list');
-
-            async function fetchMovieData(url) {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch movie data');
-                }
-                return await response.json();
+                error: function (xhr, status, error) {
+                  console.error("영화 정보 저장 중 오류 발생:", error);
+                  console.error(xhr);
+                  console.error(status);
+                },
+              });
             }
+          },
+          error: function () {
+            alert("영화 정보를 불러오는 중 오류가 발생했습니다.");
+          },
+        });
+      }
 
-            async function renderModalContent(index) {
-                try {
-                    const data = await fetchMovieData(urls[index]);
-                    if (data && data.movieInfoResult && data.movieInfoResult.movieInfo) {
-                        const movie = data.movieInfoResult.movieInfo;
+      // 뒤로 가기 버튼을 표시하는 함수
+      function showBackButton() {
+        $("#backButton").show();
+      }
 
-                        // 영화 정보 HTML 생성
-                        const modalContent = `
+      // 영화 리스트 항목 클릭 이벤트
+      $(document).on("click", ".movie-list", function () {
+        const movieCd = $(this).closest(".movie-list").data("moviecd");
+        console.log(`Selected Movie Code: ${movieCd}`);
+        openMovieDetailModal(movieCd);
+      });
+
+      // 필모그래피 항목 클릭 시, actorDetail 모달 닫고 movieDetail 모달 열기
+      $(document).on("click", ".film-item", function () {
+        const movieCd = $(this).find(".film-box").data("moviecd"); // 영화 코드 가져오기
+        console.log(`Selected Movie Code from Film Item: ${movieCd}`);
+
+        // actorDetail 모달 닫기
+        $("#actorDetail").modal("hide");
+
+        // 영화 상세 정보를 가져오는 공통 함수 호출
+        openMovieDetailModal(movieCd);
+        showBackButton();
+
+        // 뒤로 가기 버튼 클릭 시 actorDetail 모달 닫고, 이전 모달 열기
+        $("#backButton").on("click", function () {
+          // actorDetail 모달 닫기
+          $("#movieDetail").modal("hide");
+          $("#actorDetail").modal("show");
+        });
+      });
+
+      let currentIndex = 0;
+
+      async function showMovieDetails(urls) {
+        const movieListDiv = document.getElementById("rec-movie-list");
+
+        async function fetchMovieData(url) {
+          const response = await fetch(url);
+          if (!response.ok) {
+            throw new Error("Failed to fetch movie data");
+          }
+          return await response.json();
+        }
+
+        async function renderModalContent(index) {
+          try {
+            const data = await fetchMovieData(urls[index]);
+            if (
+              data &&
+              data.movieInfoResult &&
+              data.movieInfoResult.movieInfo
+            ) {
+              const movie = data.movieInfoResult.movieInfo;
+
+              // 영화 정보 HTML 생성
+              const modalContent = `
                             <h3>${movie.movieNm}</h3>
                             <p><strong>영화코드:</strong> ${movie.movieCd}</p>
-                            <p><strong>영화명(영문):</strong> ${movie.movieNmEn}</p>
+                            <p><strong>영화명(영문):</strong> ${
+                              movie.movieNmEn
+                            }</p>
                             <p><strong>제작연도:</strong> ${movie.prdtYear}</p>
                             <p><strong>상영시간:</strong> ${movie.showTm} 분</p>
                             <p><strong>개봉일:</strong> ${movie.openDt}</p>
-                            <p><strong>제작상태:</strong> ${movie.prdtStatNm}</p>
+                            <p><strong>제작상태:</strong> ${
+                              movie.prdtStatNm
+                            }</p>
                             <p><strong>영화유형:</strong> ${movie.typeNm}</p>
-                            <p><strong>제작국가:</strong> ${movie.nations.map(nation => nation.nationNm).join(", ")}</p>
-                            <p><strong>장르:</strong> ${movie.genres.map(genre => genre.genreNm).join(", ")}</p>
-                            <p><strong>감독:</strong> ${movie.directors.map(director => director.peopleNm).join(", ")}</p>
-                            <p><strong>배우:</strong> ${movie.actors.map(actor => actor.peopleNm).join(", ")}</p>
+                            <p><strong>제작국가:</strong> ${movie.nations
+                              .map((nation) => nation.nationNm)
+                              .join(", ")}</p>
+                            <p><strong>장르:</strong> ${movie.genres
+                              .map((genre) => genre.genreNm)
+                              .join(", ")}</p>
+                            <p><strong>감독:</strong> ${movie.directors
+                              .map((director) => director.peopleNm)
+                              .join(", ")}</p>
+                            <p><strong>배우:</strong> ${movie.actors
+                              .map((actor) => actor.peopleNm)
+                              .join(", ")}</p>
                             <p><strong>심의정보:</strong></p>
-                            ${movie.audits.map(audit => `
+                            ${movie.audits
+                              .map(
+                                (audit) => `
                                 <p> - 심의번호: ${audit.auditNo}, 관람등급: ${audit.watchGradeNm}</p>
-                            `).join("")}
-                            ${movie.companys.map(company => `
+                            `
+                              )
+                              .join("")}
+                            ${movie.companys
+                              .map(
+                                (company) => `
                                 <p><strong>${company.companyPartNm}:</strong> ${company.companyNm} (${company.companyNmEn})</p>
-                            `).join("")}
+                            `
+                              )
+                              .join("")}
                         `;
 
-                        movieListDiv.innerHTML = modalContent; // 모달 내용 업데이트
-                        $('#recMovie').modal('show'); // 모달 표시
+              movieListDiv.innerHTML = modalContent; // 모달 내용 업데이트
+              $("#recMovie").modal("show"); // 모달 표시
 
-                        // 이전 버튼 클릭 시
-                        const prevButton = document.getElementById('prevMovie');
-                        if (prevButton && index > 0) {
-                            prevButton.onclick = () => {
-                                currentIndex--; // currentIndex 감소
-                                renderModalContent(currentIndex); // 영화 정보 갱신
-                            };
-                        }
+              // 이전 버튼 클릭 시
+              const prevButton = document.getElementById("prevMovie");
+              if (prevButton && index > 0) {
+                prevButton.onclick = () => {
+                  currentIndex--; // currentIndex 감소
+                  renderModalContent(currentIndex); // 영화 정보 갱신
+                };
+              }
 
-                        // 다음 버튼 클릭 시
-                        const nextButton = document.getElementById('nextMovie');
-                        if (nextButton && index < urls.length - 1) {
-                            nextButton.onclick = () => {
-                                currentIndex++; // currentIndex 증가
-                                renderModalContent(currentIndex); // 영화 정보 갱신
-                            };
-                        }
-                    } else {
-                        throw new Error('Movie data not available');
-                    }
-                } catch (error) {
-                    console.error(error);
-                    movieListDiv.textContent = '영화 정보를 불러올 수 없습니다.';
-                }
+              // 다음 버튼 클릭 시
+              const nextButton = document.getElementById("nextMovie");
+              if (nextButton && index < urls.length - 1) {
+                nextButton.onclick = () => {
+                  currentIndex++; // currentIndex 증가
+                  renderModalContent(currentIndex); // 영화 정보 갱신
+                };
+              }
+            } else {
+              throw new Error("Movie data not available");
             }
-
-            // 첫 번째 영화 정보 렌더링
-            renderModalContent(currentIndex);
+          } catch (error) {
+            console.error(error);
+            movieListDiv.textContent = "영화 정보를 불러올 수 없습니다.";
+          }
         }
 
+        // 첫 번째 영화 정보 렌더링
+        renderModalContent(currentIndex);
+      }
 
-        const recButton = document.getElementById('rec-button');
+      const recButton = document.getElementById("rec-button");
 
-        recButton.addEventListener('click', async function () {
-            recButton.disabled = true;
+      recButton.addEventListener("click", async function () {
+        recButton.disabled = true;
 
-            try {
-                const response = await fetch('/rec_movies', {
-                    method: 'GET',
-                    credentials: 'include' // 쿠키를 포함해서 요청
-                });
+        try {
+          const response = await fetch("/rec_movies", {
+            method: "GET",
+            credentials: "include", // 쿠키를 포함해서 요청
+          });
 
-                // if (!response.ok) {
-                //     throw new Error('Failed to fetch movie data');
-                // }
+          // if (!response.ok) {
+          //     throw new Error('Failed to fetch movie data');
+          // }
 
-                const data = await response.json();
+          const data = await response.json();
 
-                // rec_urls를 받아와 처리
-                if (data.rec_urls && data.rec_urls.length > 0) {
-                    showMovieDetails(data.rec_urls);
-
-                } else {
-                    const movieListDiv = document.getElementById('rec-movie-list');
-                    movieListDiv.textContent = '추천할 영화가 없습니다.';
-                }
-            } catch (error) {
-                console.error('Error fetching recommended movies:', error);
-                const movieListDiv = document.getElementById('rec-movie-list');
-                movieListDiv.textContent = '추천 영화를 불러오는 데 실패했습니다.';
-            } finally {
-                recButton.disabled = false;
-            }
-        });
-
-
-
-
-
-        function recListContent() {
-            $.ajax({
-                url: `/selected_movies`,
-                method: 'POST',
-                dataType: 'json',
-                success: function (data) {
-                    console.log(data);
-
-                    // 추천 영화 목록을 표시할 컨테이너
-                    const filmContainer = document.getElementById('rec-five-list');
-                    filmContainer.innerHTML = '';  // 기존 내용을 초기화
-
-                    // 영화 데이터를 순회하며 innerHTML 생성
-                    data.forEach(film => {
-                        const filmBoxHTML = `
-                    <div class="rec-film-item">
-                        <h6>${film.title}</h6>
-                        <br />
-                        <strong>제작국가:</strong> ${film.nation}
-                        <br />
-                        <strong>감독:</strong> ${film.director}
-                        <br />
-                        <strong>장르:</strong> ${film.genre}
-                        <br />
-                        <strong>배우:</strong> ${film.actor}
-                    </div>
-                `;
-                        filmContainer.innerHTML += filmBoxHTML;  // 새 항목을 추가
-                    });
-                },
-                error: function (error) {
-                    console.error('영화 목록을 가져오는 중 오류가 발생했습니다.', error);
-                }
-            });
+          // rec_urls를 받아와 처리
+          if (data.rec_urls && data.rec_urls.length > 0) {
+            showMovieDetails(data.rec_urls);
+          } else {
+            const movieListDiv = document.getElementById("rec-movie-list");
+            movieListDiv.textContent = "추천할 영화가 없습니다.";
+          }
+        } catch (error) {
+          console.error("Error fetching recommended movies:", error);
+          const movieListDiv = document.getElementById("rec-movie-list");
+          movieListDiv.textContent = "추천 영화를 불러오는 데 실패했습니다.";
+        } finally {
+          recButton.disabled = false;
         }
+      });
 
+      // 추천 리스트 보이기
+      function recListContent() {
+        $.ajax({
+          url: `/selected_movies`,
+          method: "POST",
+          dataType: "json",
+          success: function (film) {
+            console.log(film);
 
+            // 추천 영화 목록을 표시할 컨테이너
+            const filmContainer = document.getElementById("rec-five-list");
+            filmContainer.innerHTML = ""; // 기존 내용을 초기화
 
+            // `film` 배열을 순회하며 영화 항목을 생성
+            const recItems = film.map(
+              (rec) => `
+                <div class="rec-film-item">
+                    <h6>${rec.title}</h6>
+                    <br />
+                    <strong>제작국가:</strong> ${rec.nation}
+                    <br />
+                    <strong>감독:</strong> ${rec.director}
+                    <br />
+                    <strong>장르:</strong> ${rec.genre}
+                    <br />
+                    <strong>배우:</strong> ${rec.actor}
+                </div>
+            `
+            );
 
-
-
-        // 닫기 버튼 클릭 시 모달 닫기
-        document.querySelector('.close').addEventListener('click', function () {
-            document.getElementById('movieDetail').style.display = 'none';
+            filmContainer.innerHTML = recItems.join(""); // 영화 목록 HTML 추가
+            savedRecData = recItems; // 영화 항목 데이터 저장
+            createCarouselPages(
+              savedRecData,
+              "rec-five-list",
+              "movie-top-list"
+            ); // 카로셀 페이지 생성
+          },
+          error: function (error) {
+            console.error(
+              "영화 목록을 가져오는 중 오류가 발생했습니다.",
+              error
+            );
+          },
         });
+      }
 
-        // 모달 외부 클릭 시 모달 닫기
-        window.addEventListener('click', function (event) {
-            if (event.target === document.getElementById('movieDetail')) {
-                document.getElementById('movieDetail').style.display = 'none';
-            }
-        });
+      // 닫기 버튼 클릭 시 모달 닫기
+      document.querySelector(".close").addEventListener("click", function () {
+        document.getElementById("movieDetail").style.display = "none";
+      });
 
+      // 모달 외부 클릭 시 모달 닫기
+      window.addEventListener("click", function (event) {
+        if (event.target === document.getElementById("movieDetail")) {
+          document.getElementById("movieDetail").style.display = "none";
+        }
+      });
     </script>
+  </body>
+</html>
