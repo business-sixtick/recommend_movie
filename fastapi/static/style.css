@@ -129,10 +129,11 @@ label {
   bottom: 0;
   z-index: 100;
   margin: 0;
+  margin-top: 0;
 }
 
-#carouselExample {
-  margin-bottom: 200px;
+#rec-title {
+  margin-bottom: 0;
 }
 
 .rec-film-item {
@@ -186,6 +187,7 @@ label {
   text-align: center;
   padding: 10px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* 기본적으로 한 페이지에서 보여야 할 항목들 */
@@ -207,7 +209,6 @@ label {
 }
 
 #prevButton, #nextButton {
-  display: flex !important;
   align-items: center !important;  /* 수직 중앙 정렬 */
   justify-content: center !important;  /* 수평 중앙 정렬 */
   height: 100% !important;  /* 부모 태그의 전체 높이를 차지하게 설정 */

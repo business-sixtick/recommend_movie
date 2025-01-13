@@ -341,7 +341,7 @@ app.add_middleware(
 
 
 # 외부 API의 URL과 API 키
-KOBIS_API_KEY = ""
+KOBIS_API_KEY = "20ddcd10640eb87f69ef2fed167ef9ca"
 KOBIS_BASE_URL = "http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieList.json"
 
     
