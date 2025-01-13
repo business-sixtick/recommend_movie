@@ -12,12 +12,13 @@ LLM 기반 영화 추천 프로그램
 
 
 ## 일정
-1. 기획 및 일정 수립
+1. 기획 및 일정 수립 20241206
 2. 개발환경 구축
 3. 데이터 수집 및 데이터베이스 연동
 4. LLM 활용
 5. 뷰페이지 작성 및 웹 크롤링
 6. 기능 테스트 및 배포
+7. 프로젝트 종료 20250117
 
 
 
@@ -25,16 +26,19 @@ LLM 기반 영화 추천 프로그램
 - 구성 요소 : 영화 검색 사이트, LLM API, 회원관리, 영화 종합 정보 사이트 크롤링
 - 데이터 흐름 : 키워드 입력 -> LLM 분석 -> DB 조회 및 크롤링 -> 결과 정렬 및 필터링 -> 사용자 제공 
 - 기술 스택 : python(fast api), html5, mysql, ~~spring boot(초보자가 접근하기 어려운 기술이고 잦은 오류와 개발 딜레이로 인해 fast api 로 전환하였음.)~~ , 정보사이트 api, llama 3.1
+- LLM 모델 : https://huggingface.co/MLP-KTLim/ma-3-Korean-Bllossom-8B
+- llama 3.1 about: https://www.llama.com/docs/model-cards-and-prompt-formats/llama3_1
+
 
 
 ## 개발 환경 및 자료 출처 
 - 운영 체제 : windows 11 pro, ubuntu(mysql, LLM api server)
 - 개발 언어 : python, html5
 - 편집기 : visual studio code
-- 버전 관리 : github
+- 버전 관리 : github https://github.com/business-sixtick/recommend_movie
 - 데이터베이스 : mysql 
 - 영화 종합 검색 사이트 : 
-- 
+- html5 library : https://getbootstrap.com/
 
 ## 후기 (기대 효과 및 확장 가능성)
 - 기대 효과 : 사용자 영화 탐색 경험 향상, 빠르고 정확한 영화 추천으로 시간 절약, 최신 트렌드 및 개인화된 정보 제공
