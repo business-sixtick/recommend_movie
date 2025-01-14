@@ -5,6 +5,12 @@
 4. 검색해서 성공하면 검색창 초기화해서 그 다음에 바로 검색해도 결과 나오게 하기
 
 
+충돌 시 특정 커밋 되돌리기
+copy commit id
+git reset --hard 5a04fa8dc4ab823d609b2259ea4541042d01aead
+
+
+
 fastapi 브라우저에서 실행 
 cd ~
 source fastapi/bin/activate
