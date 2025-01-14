@@ -154,9 +154,7 @@ def authenticate_user(db, username: str, password: str):
         return False
     return user
 
-# def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
 def get_current_user(token: str, db: Session = Depends(get_db)):
-    # Depends는 함수에 필요한 외부 리소스나 객체를 자동으로 생성하고 주입해 주는 역할을 합니다.
     print('get_current_user')
     print(token)
     try:
@@ -169,7 +167,7 @@ def get_current_user(token: str, db: Session = Depends(get_db)):
         token_data = TokenData(username=username, user_id=user_id)
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
-    except Exception as e:  # 모든 다른 예외를 처리
+    except Exception as e:
         print(f"예상치 못한 오류가 발생했습니다: {e}")
     
     user = get_user(db, username=token_data.username)
@@ -341,7 +339,7 @@ app.add_middleware(
 
 
 # 외부 API의 URL과 API 키
-KOBIS_API_KEY = ""
+KOBIS_API_KEY = "20ddcd10640eb87f69ef2fed167ef9ca"
 KOBIS_BASE_URL = "http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieList.json"
 
     
