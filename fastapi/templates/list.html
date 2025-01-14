@@ -155,29 +155,29 @@
 
   <div id="carouselRecExample">
     <h1 id="rec-title" style="display: none;" class="bg-light">추천 영화</h1>
-      
+
     <div class="text-center bg-light" id="rec-five-list"></div>
 
-        <!-- 이전 버튼 -->
-        <a class="carousel-control-prev" href="#carouselRecExample" role="button" data-slide="prev" id="prevButton"
-        style="display: none">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-caret-left-fill"
-          viewBox="0 0 16 16">
-          <path
-            d="m3.86 7.247 5.482-4.796c.646-.566 1.658-.106 1.658.753v9.592a1 1 0 0 1-1.659.753l-5.48-4.796a1 1 0 0 1 0-1.506z" />
-        </svg>
-        <span class="sr-only">Previous</span>
-      </a>
-      <!-- 다음 버튼 -->
-      <a class="carousel-control-next" href="#carouselRecExample" role="button" data-slide="next" id="nextButton"
-        style="display: none">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-caret-right-fill"
-          viewBox="0 0 16 16">
-          <path
-            d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z" />
-        </svg>
-        <span class="sr-only">Next</span>
-      </a>
+    <!-- 이전 버튼 -->
+    <a class="carousel-control-prev" href="#carouselRecExample" role="button" data-slide="prev" id="prevButton"
+      style="display: none">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-caret-left-fill"
+        viewBox="0 0 16 16">
+        <path
+          d="m3.86 7.247 5.482-4.796c.646-.566 1.658-.106 1.658.753v9.592a1 1 0 0 1-1.659.753l-5.48-4.796a1 1 0 0 1 0-1.506z" />
+      </svg>
+      <span class="sr-only">Previous</span>
+    </a>
+    <!-- 다음 버튼 -->
+    <a class="carousel-control-next" href="#carouselRecExample" role="button" data-slide="next" id="nextButton"
+      style="display: none">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-caret-right-fill"
+        viewBox="0 0 16 16">
+        <path
+          d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z" />
+      </svg>
+      <span class="sr-only">Next</span>
+    </a>
   </div>
 
   <!-- 로그인과 회원가입 모달창 -->
@@ -599,7 +599,7 @@
                 if (response.actor_list) {
                   displayActorResults(response.actor_list);
                 } else if (response.movie_list) {
-                  displayResults(response.movie_list);
+                  displayResults(response.movie_list, response.all_movies_with_posters);
                 } else if (response.llmAnswer) {
                   fetchLlmAnswer(response.llmAnswer);
                 }
@@ -825,26 +825,52 @@
       }
     }
 
+
+
     let savedMovieData = [];
     let savedActorData = [];
     let savedRecData = [];
 
-    function displayResults(movies) {
+    function displayResults(movies, all_movies_with_posters) {
       const resultsContainer = document.getElementById("carousel-inner");
       resultsContainer.innerHTML = ""; // 기존 결과 초기화
 
-      const movieItems = movies.map(
-        (movie) => `
-                <div class="movie-list" data-movieCd="${movie.movieCd}">
-                    <h5>${movie.movieNm} <br> (${movie.prdtYear})</h5>
-                </div>
-            `
-      );
+      const movieItems = movies.map((movie) => {
+        // all_movies_with_posters에서 해당 영화에 대한 포스터 URL 찾기
+        const movieName = movie.movieNm;
+        let poster_url = '';  // 기본적으로 빈 문자열
+
+        // movie_name과 일치하는 포스터 URL 찾기
+        const movieData = all_movies_with_posters.find(item => item.movie_name === movieName);
+
+        if (movieData && movieData.poster_urls && movieData.poster_urls.length > 0) {
+          // 포스터 URL이 있으면 첫 번째 포스터 URL을 사용
+          poster_url = movieData.poster_urls[0];
+        } else {
+          // 포스터 URL이 없으면 "이미지 없음" 텍스트를 출력
+          poster_url = '이미지 없음';
+          return null;
+        }
+
+        console.log("poster_url: ", poster_url);
+
+        return `
+            <div class="movie-list" data-movieCd="${movie.movieCd}">
+                ${poster_url === '이미지 없음' ?
+            `<span>이미지 없음</span>` :
+            `<img src="${poster_url}" alt="${movie.movieNm}" style="width: 200px; height: 280px; object-fit: fill; border-radius: 8px;">`}
+            </div>
+            <h5 style="width: 200px; text-align: center; word-wrap: break-word;">${movie.movieNm} <br> (${movie.prdtYear})</h5>
+        `;
+      })
+        .filter(item => item !== null)
 
       resultsContainer.innerHTML = movieItems.join("");
       savedMovieData = movieItems;
       createCarouselPages(savedMovieData, "carousel-inner", "movie-top-list");
     }
+
+
 
     function displayActorResults(actorData) {
       const resultsContainer = document.getElementById("carousel-inner");

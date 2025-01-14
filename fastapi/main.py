@@ -339,9 +339,9 @@ app.add_middleware(
 
 
 # 외부 API의 URL과 API 키
+TMDB_AUTH = "Bearer ..-"
 KOBIS_API_KEY = ""
 KOBIS_BASE_URL = "http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieList.json"
-
     
 # DB 세션 생성 함수
 def get_db():
@@ -465,7 +465,7 @@ async def search_movies(
     # 외부 API 요청 파라미터 구성 (배우가 아닐 경우에만 영화 검색)
     external_api_params = {
         "key": KOBIS_API_KEY,
-        "itemPerPage": 100,
+        "itemPerPage": 20,
     }    
 
     if title:
@@ -489,11 +489,60 @@ async def search_movies(
 
     # 외부 API 응답에서 영화 목록 추출
     movie_list = data.get('movieListResult', {}).get('movieList', [])
+    
+    all_movies_with_posters = []
+    
+    # 영화 목록 리스트에서 제목과 개봉 연도 정보 추출
+    for movie in movie_list:
+        movie_name = movie.get('movieNm', '')
+        open_date = movie.get('openDt', '')
+        # 개봉일에서 앞의 4자리만 추출
+        open_year = open_date[:4] if len(open_date) >= 4 else "N/A"
+        print(f"영화 이름: {movie_name}, 개봉 연도: {open_year}")
 
+        url = f"https://api.themoviedb.org/3/search/movie?query={movie_name}&include_adult=true&language=ko-KOR&page=1&year={open_year}"
+
+        headers = {
+            "accept": "application/json",
+            "Authorization": TMDB_AUTH
+        }
+
+        response = requests.get(url, headers=headers)
+
+        print("--------------------------------------------------")
+        # print(response.text)
+        
+        # JSON 응답 파싱
+        data = json.loads(response.text)
+        results = data.get('results', [])
+        
+        poster_urls = []
+
+        if results:
+            for result in results: 
+                poster_path = result.get('poster_path', '')
+                if poster_path:
+                    # 포스터 URL 생성
+                    poster_url = f"https://image.tmdb.org/t/p/w220_and_h330_face{poster_path}"
+                    poster_urls.append(poster_url)  # poster_url을 리스트에 추가
+                    print(f"Poster URL: {poster_url}")
+                else:
+                    print("Poster path not found.")
+            
+            # 영화 이름과 매칭된 포스터 URL을 함께 저장
+            all_movies_with_posters.append({
+                'movie_name': movie_name,
+                'poster_urls': poster_urls  # 각 영화에 대한 포스터 URL 리스트
+            })
+        else:
+            print("No results found.")
+                
     if not movie_list:
         return JSONResponse(status_code=200, content={"message": "영화가 없습니다."})
+    
+    print(all_movies_with_posters)
 
-    return JSONResponse(status_code=200, content={"movie_list": movie_list})
+    return JSONResponse(status_code=200, content={"movie_list": movie_list, "all_movies_with_posters": all_movies_with_posters})
 
 
 
