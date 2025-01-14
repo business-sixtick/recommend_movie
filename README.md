@@ -26,7 +26,7 @@ LLM 기반 영화 추천 프로그램
 - 구성 요소 : 영화 검색 사이트, LLM API, 회원관리, 영화 종합 정보 사이트 크롤링
 - 데이터 흐름 : 키워드 입력 -> LLM 분석 -> DB 조회 및 크롤링 -> 결과 정렬 및 필터링 -> 사용자 제공 
 - 기술 스택 : python(fast api), html5, mysql, ~~spring boot(초보자가 접근하기 어려운 기술이고 잦은 오류와 개발 딜레이로 인해 fast api 로 전환하였음.)~~ , 정보사이트 api, llama 3.1
-- LLM 모델 : https://huggingface.co/MLP-KTLim/ma-3-Korean-Bllossom-8B
+- LLM 모델 : https://huggingface.co/MLP-KTLim/llama-3-Korean-Bllossom-8B
 - llama 3.1 about: https://www.llama.com/docs/model-cards-and-prompt-formats/llama3_1
 
 
