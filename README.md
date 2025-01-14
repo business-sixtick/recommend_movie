@@ -57,4 +57,8 @@ LLM 기반 영화 추천 프로그램
 
 ![결과 상세](image/movie_detail.png)
 - 로직 다이어그램
-![로직 다이어그램램](image/movie-sec.jpg)
+
+![로직 다이어그램](image/movie_diagram.jpg)
+- ERD
+
+![ERD](image/mysql_erd.png)
