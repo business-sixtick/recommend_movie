@@ -2,8 +2,8 @@
 LLM 기반 영화 추천 프로그램
 
 ## 팀원
-- 책임자, 코더 : 안채연
-- LLM 연동 담당, 어드바이저 : 조영훈
+- 책임자, 코더 : 안채연 (achaeyeon18@gmail.com)
+- LLM 연동 담당, 어드바이저 : 조영훈 (business4dyd@gmail.com)
 - 장소 : 성남 세종교육 AIoT 7월반
 
 ## 개요
