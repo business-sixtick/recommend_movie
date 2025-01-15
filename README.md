@@ -37,7 +37,7 @@ LLM 기반 영화 추천 프로그램
 - 편집기 : visual studio code
 - 버전 관리 : github https://github.com/business-sixtick/recommend_movie
 - 데이터베이스 : mysql 
-- 영화 종합 검색 사이트 : https://www.kobis.or.kr/kobisopenapi/homepg/main/main.do
+- 영화 종합 검색 사이트 : https://www.kobis.or.kr/kobisopenapi/homepg/main/main.do, https://www.themoviedb.org/
 - html5 library : https://getbootstrap.com/
 
 ## 후기 (기대 효과 및 확장 가능성)
