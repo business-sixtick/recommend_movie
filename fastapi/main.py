@@ -338,9 +338,12 @@ app.add_middleware(
 )
 
 
-# 외부 API의 URL과 API 키
-TMDB_AUTH = "Bearer ..-"
-KOBIS_API_KEY = ""
+# 환경 변수 사용
+TMDB_AUTH = os.getenv('TMDB_AUTH')
+KOBIS_API_KEY = os.getenv('KOBIS_API_KEY')
+
+print(f"TMDB_AUTH: {TMDB_AUTH}")
+print(f"KOBIS_API_KEY: {KOBIS_API_KEY}")
 KOBIS_BASE_URL = "http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieList.json"
     
 # DB 세션 생성 함수
@@ -385,7 +388,7 @@ async def check_login(
 ):
     print(f"Received access_token: {access_token}")  # 디버깅 로그
     try:
-        user = get_user_from_token(access_token, db)
+        # user = get_user_from_token(access_token, db)
         return {"isLoggedIn": True}
     except HTTPException:
         return {"isLoggedIn": False}

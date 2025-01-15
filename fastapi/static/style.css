@@ -107,13 +107,16 @@ label {
   position: sticky;
   top: 0;
   z-index: 100;
-  padding: 12px 0;
   margin: 0;
   background-color: #f0f8ff;
   display: flex;
   /* 플렉스 박스로 설정 */
   height: 80px;
   /* 높이 설정 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 
 .main-body {
@@ -172,7 +175,6 @@ label {
   flex-wrap: nowrap;
   gap: 20px;
   justify-content: center;
-  padding: 10px;
 }
 
 .movie-list,
@@ -203,6 +205,4 @@ label {
 #prevButton, #nextButton {
   align-items: center !important;  /* 수직 중앙 정렬 */
   justify-content: center !important;  /* 수평 중앙 정렬 */
-  height: 100% !important;  /* 부모 태그의 전체 높이를 차지하게 설정 */
-  position: absolute !important;  /* !important 사용으로 강제 적용 */
 }

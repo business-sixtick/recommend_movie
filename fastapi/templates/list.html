@@ -36,12 +36,7 @@
   </div>
 
   <!-- 영화 검색 영역 -->
-  <div id="search-container" style="
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-      ">
+  <div id="search-container">
     <!-- <h3 class="m-0" style="color: #333;">영화 검색</h3> -->
     <div class="input-group" style="width: 50%">
       <input class="form-control search-input" type="text" id="llm-query" style="
@@ -896,7 +891,7 @@ function clearPreviousResults() {
             `<span>이미지 없음</span>` :
             `<img src="${poster_url}" alt="${movie.movieNm}" style="width: 200px; height: 280px; object-fit: fill; border-radius: 8px;">`}
             </div>
-            <h5 style="width: 200px; text-align: center; word-wrap: break-word;">${movie.movieNm} <br> (${movie.prdtYear})</h5>
+            <h6 style="width: 200px; text-align: center; word-wrap: break-word;">${movie.movieNm} <br> (${movie.prdtYear})</h6>
         `;
       })
         .filter(item => item !== null)
@@ -982,7 +977,7 @@ function clearPreviousResults() {
                     <br />
                     <strong>배우:</strong> ${rec.actor}
                 </div>
-                <h6>${rec.title}</h6>
+                <h6 style="width: 200px; text-align: center; word-wrap: break-word;">${rec.title}</h6>
             `
           );
 
