@@ -339,8 +339,8 @@ app.add_middleware(
 
 
 # 외부 API의 URL과 API 키
-TMDB_AUTH = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI3YTUyNjJjZTM4ZjkyZDQ1NWM2MDc5NGQ4MmQxNmM4OCIsIm5iZiI6MTczNjgzNDg2Ny45MTgwMDAyLCJzdWIiOiI2Nzg1ZmYzMzk0ZmM4N2VmNDg3YjViYTciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.YH_jlYimyN9Fa8Cd0W6-_SbUjOvBtvNHF4uGByn4EmI"
-KOBIS_API_KEY = "20ddcd10640eb87f69ef2fed167ef9ca"
+TMDB_AUTH = "Bearer ..-"
+KOBIS_API_KEY = ""
 KOBIS_BASE_URL = "http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieList.json"
     
 # DB 세션 생성 함수
