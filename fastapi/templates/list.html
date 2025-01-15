@@ -119,14 +119,14 @@
   <!-- <div id="alert"></div> -->
 
   <div id="carouselExample" class="carousel slide">
-    <h1 id="search-title" style="display: none;">검색 결과</h1>
+    <h3 id="search-title" style="display: none;">검색 결과</h3>
     <div class="carousel-inner" id="carousel-inner">
       <!-- 첫 번째 항목: 영화 리스트 -->
-      <div class="carousel-item active" id="movie-item">
+      <div class="carousel-item active" id="movie-item" style="padding: 0px !important; display: flex; justify-content: center;">
         <div class="movie-top-list" id="movie-list"></div>
       </div>
       <!-- 두 번째 항목: 배우 리스트 -->
-      <div class="carousel-item active" id="actor-item">
+      <div class="carousel-item active" id="actor-item" style="padding: 0px !important; display: flex; justify-content: center;">
         <div class="actor-top-list" id="actor-list"></div>
       </div>
     </div>
@@ -154,7 +154,7 @@
   </div>
 
   <div id="carouselRecExample">
-    <h1 id="rec-title" style="display: none;" class="bg-light">추천 영화</h1>
+    <h3 id="rec-title" style="display: none;" class="bg-light">추천 영화</h3>
 
     <div class="text-center bg-light" id="rec-five-list"></div>
 
@@ -244,7 +244,7 @@
           <button type="button" class="btn btn-secondary" id="backButton" style="display: none">
             <i class="fa fa-arrow-left"></i> 뒤로 가기
           </button>
-          <h5 class="modal-title" id="movieDetailLabel">영화 상세 정보</h5>
+          <h5 class="modal-title" id="movieDetailLabel" style="display: flex; justify-content: center; width: 100%;">영화 상세 정보</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
@@ -268,7 +268,7 @@
       <div class="modal-content">
         <!-- 모달 헤더 -->
         <div class="modal-header">
-          <h5 class="modal-title" id="actorDetailLabel">영화인 상세 정보</h5>
+          <h5 class="modal-title" id="actorDetailLabel" style="display: flex; justify-content: center; width: 100%;">영화인 상세 정보</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
@@ -508,6 +508,9 @@
       });
     });
 
+
+
+
     // 국가 선택 모달창에서 하나만 고르기
     document.addEventListener("DOMContentLoaded", function () {
       const nationRadios = document.querySelectorAll(".nation-radio");
@@ -527,6 +530,10 @@
       });
     });
 
+
+
+
+
     // 검색 이벤트
     document.addEventListener("DOMContentLoaded", function () {
       const searchButton = document.querySelector("#search-button");
@@ -538,6 +545,10 @@
 
       searchButton.addEventListener("click", function (event) {
         event.preventDefault(); // 페이지 새로고침 방지
+            // 리사이즈 중에는 이전 결과 초기화 함수 실행되지 않도록
+    if (!isResizing) {
+      clearPreviousResults(); // 검색 결과 초기화
+    }
         search(); // 검색 함수 호출
         recListContent(); // 추천 리스트 생성
         setTimeout(showRecList, 500); // 검색 후 약간의 지연 후에 결과 표시
@@ -550,19 +561,54 @@
         .addEventListener("keydown", function (event) {
           if (event.key === "Enter") {
             event.preventDefault(); // 페이지 새로고침 방지
+                // 리사이즈 중에는 이전 결과 초기화 함수 실행되지 않도록
+    if (!isResizing) {
+      clearPreviousResults(); // 검색 결과 초기화
+    }
             search();
             recListContent();
             setTimeout(showRecList, 500);
             document.getElementById("search-title").style.display = "flex";
             document.getElementById("rec-title").style.display = "flex";
+            document.getElementById("search-title").style.cssText = "justify-content: center; display: flex;";
+            document.getElementById("rec-title").style.cssText = "justify-content: center; display: flex;";
           }
         });
     });
+
+
+
+        // 이전 검색 결과 초기화 함수
+function clearPreviousResults() {
+  console.log("clearPreviousResults called");
+
+  const resultsContainer = document.getElementById("carousel-inner");
+  resultsContainer.innerHTML = ""; // 기존 결과 초기화
+
+  // 검색 결과를 숨기기 (필요한 경우)
+  document.getElementById("rec-five-list").style.display = "none"; 
+  document.getElementById("search-title").style.display = "none"; 
+  document.getElementById("rec-title").style.display = "none";
+
+  document.getElementById("title-query").value = "";
+  document.getElementById("actor-query").value = "";
+  document.getElementById("director-query").value = "";
+  document.getElementById("nation-query").value = "";
+
+    // 저장된 검색 데이터도 초기화
+    savedMovieData = [];
+  savedActorData = [];
+  savedRecData = [];
+}
+
+
 
     // 슬라이드 자동으로 넘어가는 기능 비활성화
     $("#carouselExample").carousel({
       interval: false,
     });
+
+
 
 
     // 검색 요청 함수
@@ -597,10 +643,13 @@
               data: formData,
               success: function (response) {
                 if (response.actor_list) {
-                  displayActorResults(response.actor_list);
+                  console.log("displayActorResults");
+                  displayActorResults(response.actor_list, response.all_actors_with_profiles);
                 } else if (response.movie_list) {
+                  console.log("displayResults");
                   displayResults(response.movie_list, response.all_movies_with_posters);
                 } else if (response.llmAnswer) {
+                  console.log("fetchLlmAnswer");
                   fetchLlmAnswer(response.llmAnswer);
                 }
               },
@@ -617,19 +666,7 @@
     }
 
     function fetchLlmAnswer(querys) {
-      // 사용자 입력 값 가져오기
-      // const resultsContainer = document.getElementById('movie-list');
-      // resultsContainer.innerHTML = ''; // 기존 결과 초기화
-
-      // if (querys.length === 0) {
-      //     resultsContainer.innerHTML = '<p>인공지능이 대답을 거부합니다.</p>';
-      // }
-
       const query = querys; // querys가 하나의 값이라면 그대로 사용
-      // const queryHTML = `
-      //     <p hidden><strong>answer:</strong> ${query}</p>
-      // `;
-      // resultsContainer.innerHTML = queryHTML;
 
       try {
         // 백틱(```)이 포함되어 있으면 제거 (1개 이상 백틱을 처리)
@@ -700,14 +737,9 @@
       }
     }
 
-    // 검색창 초기화 함수
-    function resetSearchFields() {
-      document.getElementById("title-query").value = "";
-      document.getElementById("actor-query").value = "";
-      document.getElementById("director-query").value = "";
-      document.getElementById("nation-query").value = "";
-      // llm-query는 초기화하지 않음
-    }
+
+
+
 
     // <p><strong>영화 코드:</strong> ${movie.movieCd}</p>
     //         <p><strong>영어 제목:</strong> ${movie.movieNmEn}</p>
@@ -777,8 +809,11 @@
       carouselInner.innerHTML = ""; // 초기화
 
       const itemsPerPage = calculateItemsPerPage(); // 화면 크기에 맞게 계산
+
       console.log("itemsPerPage: ", itemsPerPage);
+
       const totalPages = Math.ceil(items.length / itemsPerPage);
+      
       console.log("items.length: ", items.length);
       console.log("total page: ", totalPages);
 
@@ -818,12 +853,13 @@
       if (
         carouselInner
           .querySelector(".carousel-item.active")
-          .classList.contains("active") &&
-        totalPages === 1
+          .classList.contains("active") && totalPages === 1
       ) {
         nextButton.style.display = "none";
       }
     }
+
+
 
 
 
@@ -872,22 +908,38 @@
 
 
 
-    function displayActorResults(actorData) {
+    function displayActorResults(actorData, all_actors_with_profiles) {
       const resultsContainer = document.getElementById("carousel-inner");
       resultsContainer.innerHTML = ""; // 기존 결과 초기화
 
       const actorItems = actorData
         .map((actor) => {
-          // '배우' 또는 '감독'만 출력하도록 조건 추가
+          const actorName = actor.peopleNm
+          let profile_url = '';
+
+          const profileData = all_actors_with_profiles.find(item => item.actor_name === actorName);
+
+          if (profileData && profileData.profile_urls && profileData.profile_urls.length > 0) {
+            // 포스터 URL이 있으면 첫 번째 포스터 URL을 사용
+            profile_url = profileData.profile_urls[0];
+          } else {
+            // 포스터 URL이 없으면 "이미지 없음" 텍스트를 출력
+            profile_url = '이미지 없음';
+            return null;
+          }
+
           if (actor.repRoleNm === "배우" || actor.repRoleNm === "감독") {
             const movieTitles = actor.filmoNames.split("|").join(", ");
             return `
                 <div class="actor-list" data-actorCd="${actor.peopleCd}">
-                    <h3>${actor.peopleNm} (${actor.peopleNmEn})</h3>
+                      ${profile_url === '이미지 없음' ?
+            `<span>이미지 없음</span>` :
+            `<img src="${profile_url}" alt="${actor.peopleNm}" style="width: 200px; height: 280px; object-fit: fill; border-radius: 8px;">`}
                     <!-- <p><strong>영화인 코드:</strong> ${actor.peopleCd}</p> -->
                     <p><strong>분야:</strong> ${actor.repRoleNm}</p>
                     <p><strong>참여 영화:</strong> ${movieTitles}</p>
                 </div>
+                <h5 style="width: 200px; text-align: center; word-wrap: break-word;">${actor.peopleNm} (${actor.peopleNmEn})</h5>
             `;
           }
           return "";
@@ -899,41 +951,108 @@
       createCarouselPages(savedActorData, "carousel-inner", "actor-top-list");
     }
 
-    let resizeTimeout;
 
-    window.addEventListener("resize", (event) => {
-      // 이전 타이머를 클리어하고 새로운 타이머를 설정
-      clearTimeout(resizeTimeout);
 
-      resizeTimeout = setTimeout(() => {
-        // 영화 데이터에 대해 carousel 페이지 생성
-        if (savedMovieData && savedMovieData.length > 0) {
-          createCarouselPages(
-            savedMovieData,
-            "carousel-inner",
-            "movie-top-list"
+
+    // 추천 리스트 보이기
+    function recListContent() {
+      $.ajax({
+        url: `/selected_movies`,
+        method: "POST",
+        dataType: "json",
+        success: function (film) {
+          console.log(film);
+
+          // 추천 영화 목록을 표시할 컨테이너
+          const filmContainer = document.getElementById("rec-five-list");
+          filmContainer.innerHTML = ""; // 기존 내용을 초기화
+
+          // `film` 배열을 순회하며 영화 항목을 생성
+          const recItems = film.map(
+            (rec) => `
+                <div class="rec-film-item">
+                  <img src="${rec.url}" alt="${rec.title}" style="width: 200px; height: 280px; object-fit: fill; border-radius: 8px;">
+                    <h6>${rec.title}</h6>
+                    <br />
+                    <strong>제작국가:</strong> ${rec.nation}
+                    <br />
+                    <strong>감독:</strong> ${rec.director}
+                    <br />
+                    <strong>장르:</strong> ${rec.genre}
+                    <br />
+                    <strong>배우:</strong> ${rec.actor}
+                </div>
+                <h6>${rec.title}</h6>
+            `
           );
-        }
 
-        // 배우 데이터에 대해 carousel 페이지 생성
-        if (savedActorData && savedActorData.length > 0) {
-          createCarouselPages(
-            savedActorData,
-            "carousel-inner",
-            "actor-top-list"
-          );
-        }
-
-        // 배우 데이터에 대해 carousel 페이지 생성
-        if (savedRecData && savedRecData.length > 0) {
+          filmContainer.innerHTML = recItems.join(""); // 영화 목록 HTML 추가
+          savedRecData = recItems; // 영화 항목 데이터 저장
           createCarouselPages(
             savedRecData,
             "rec-five-list",
-            "movie-top-list"
+            "movie-top-list",
+          ); // 카로셀 페이지 생성
+        },
+        error: function (error) {
+          console.error(
+            "영화 목록을 가져오는 중 오류가 발생했습니다.",
+            error
           );
-        }
-      }, 500); // 500ms 후에 실행
-    });
+        },
+      });
+    }
+
+
+
+    
+    let resizeTimeout;
+let isResizing = false; // 리사이즈 중인지 체크하는 플래그
+
+// 리사이즈 이벤트
+window.addEventListener("resize", (event) => {
+  // 리사이즈 중에는 초기화 함수 실행되지 않도록 방지
+  isResizing = true;
+
+  // 이전 타이머를 클리어하고 새로운 타이머를 설정
+  clearTimeout(resizeTimeout);
+
+  resizeTimeout = setTimeout(() => {
+    // 리사이즈 완료 후, isResizing을 false로 변경
+    isResizing = false;
+
+    // 영화 데이터에 대해 carousel 페이지 생성
+    if (savedMovieData && savedMovieData.length > 0) {
+      createCarouselPages(
+        savedMovieData,
+        "carousel-inner",
+        "movie-top-list"
+      );
+    }
+
+    // 배우 데이터에 대해 carousel 페이지 생성
+    if (savedActorData && savedActorData.length > 0) {
+      createCarouselPages(
+        savedActorData,
+        "carousel-inner",
+        "actor-top-list"
+      );
+    }
+
+    // 추천 데이터에 대해 carousel 페이지 생성
+    if (savedRecData && savedRecData.length > 0) {
+      createCarouselPages(
+        savedRecData,
+        "rec-five-list",
+        "movie-top-list"
+      );
+    }
+  }, 500); // 500ms 후에 실행
+});
+
+
+
+
 
     // 영화인 상세 정보 모달창
     $(document).ready(function () {
@@ -946,53 +1065,55 @@
           method: "GET",
           dataType: "json",
           success: function (data) {
-            if (
-              data &&
-              data.peopleInfoResult &&
-              data.peopleInfoResult.peopleInfo
-            ) {
-              const actor = data.peopleInfoResult.peopleInfo;
+            if (data && data.actor_details && data.actor_details.peopleInfoResult) {
+              const actor = data.actor_details.peopleInfoResult.peopleInfo;
+              const actor_filmo_list = data.actor_filmo_list; // 추가된 필모 리스트
 
               // 기본 정보 출력
               const modalContent = `
-                        <h3>${actor.peopleNm}</h3>
-                        <p><strong>영화인 코드:</strong> ${actor.peopleCd}</p>
-                        <p><strong>영화인명(영문):</strong> ${actor.peopleNmEn || "N/A"
-                }</p>
-                        <p><strong>성별:</strong> ${actor.sex || "N/A"}</p>
-                        <p><strong>영화인 분류명:</strong> ${actor.repRoleNm || "N/A"
-                }</p>
-                    `;
+              <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 10px;">
+                <h3><strong>${actor.peopleNm}</strong></h3>
+                <h5>${actor.peopleNmEn || "N/A"}</h5>
+              </div>
+                <p><strong>영화인 코드:</strong> ${actor.peopleCd}</p>
+                <p><strong>성별:</strong> ${actor.sex || "N/A"}</p>
+                <p><strong>영화인 분류명:</strong> ${actor.repRoleNm || "N/A"}</p>
+              `;
 
               // 필모그래피 생성
               let filmographyContent = "<h4>영화인 필모그래피</h4>";
-              filmographyContent += '<div class="filmography-grid">'; // 그리드 시작
+              filmographyContent += '<div class="filmography-grid">';
 
               if (actor.filmos && actor.filmos.length > 0) {
                 actor.filmos.forEach((film) => {
-                  filmographyContent += `
-                                <div class="film-item">
-                                    <div class="film-box" data-moviecd="${film.movieCd}">
-                                        <h6>${film.movieNm}</h6> 
-                                        <br />
-                                        <strong>영화코드:</strong> ${film.movieCd}
-                                        <br />
-                                        <strong>참여 분야:</strong> ${film.moviePartNm}
-                                    </div>
-                                </div>
-                            `;
+                  const matchingFilmo = actor_filmo_list.find(filmo => filmo.filmo_name === film.movieNm);
+                  const posterImg = matchingFilmo && matchingFilmo.poster_urls.length > 0 
+                    ? `<img src="${matchingFilmo.poster_urls[0]}" alt="${film.movieNm}" style="height: 190px;">`
+                    : ''; // 포스터가 없는 경우 빈 문자열
+
+                    filmographyContent += `
+                      <div class="film-item">
+                        <div class="film-box" data-moviecd="${film.movieCd}" style='padding: 0;'>
+                          ${posterImg}
+                          <br />
+                          <strong>영화코드:</strong> ${film.movieCd}
+                          <br />
+                          <strong>참여 분야:</strong> ${film.moviePartNm}
+                          <div style="text-align: center; margin-top: 10px;">
+                            <h6 style="margin: 0;">${film.movieNm}</h6>
+                          </div>
+                        </div>
+                      </div>
+                    `;
                 });
               } else {
-                filmographyContent +=
-                  '<div class="film-item">필모그래피 정보가 없습니다.</div>';
+                filmographyContent += '<div class="film-item">필모그래피 정보가 없습니다.</div>';
               }
 
-              filmographyContent += "</div>"; // 그리드 끝
+              filmographyContent += "</div>";
 
               // 결합된 콘텐츠를 모달에 출력
-              $("#actorDetail .modal-body").html(
-                modalContent + filmographyContent
-              );
+              $("#actorDetail .modal-body").html(modalContent + filmographyContent);
               $("#actorDetail").modal("show");
             }
           },
@@ -1002,6 +1123,11 @@
         });
       });
     });
+
+
+
+
+
 
     // 영화 상세 정보 모달을 여는 공통 함수
     function openMovieDetailModal(movieCd) {
@@ -1019,15 +1145,16 @@
 
             // 영화 정보 모달에 표시하기
             const modalContent = `
-                    <h3>${movie.movieNm}</h3>
-                    <p><strong>영화코드:</strong> ${movie.movieCd}</p>
-                    <p><strong>영화명(영문):</strong> ${movie.movieNmEn}</p>
-                    <p><strong>제작연도:</strong> ${movie.prdtYear}</p>
-                    <p><strong>상영시간:</strong> ${movie.showTm}분</p>
-                    <p><strong>개봉일:</strong> ${movie.openDt}</p>
-                    <p><strong>제작상태:</strong> ${movie.prdtStatNm}</p>
-                    <p><strong>영화유형:</strong> ${movie.typeNm}</p>
-                    <p><strong>제작국가:</strong> ${movie.nations
+              <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 10px;">
+                <h3><strong>${movie.movieNm}</strong></h3>
+                <h5>${movie.movieNmEn}</h5>
+              </div>
+              <p><strong>제작연도:</strong> ${movie.prdtYear}</p>
+              <p><strong>상영시간:</strong> ${movie.showTm}분</p>
+              <p><strong>개봉일:</strong> ${movie.openDt}</p>
+              <p><strong>제작상태:</strong> ${movie.prdtStatNm}</p>
+              <p><strong>영화유형:</strong> ${movie.typeNm}</p>
+              <p><strong>제작국가:</strong> ${movie.nations
                 .map((nation) => nation.nationNm)
                 .join(", ")}</p>
                     <p><strong>장르:</strong> ${movie.genres
@@ -1261,52 +1388,10 @@
       }
     });
 
-    // 추천 리스트 보이기
-    function recListContent() {
-      $.ajax({
-        url: `/selected_movies`,
-        method: "POST",
-        dataType: "json",
-        success: function (film) {
-          console.log(film);
 
-          // 추천 영화 목록을 표시할 컨테이너
-          const filmContainer = document.getElementById("rec-five-list");
-          filmContainer.innerHTML = ""; // 기존 내용을 초기화
 
-          // `film` 배열을 순회하며 영화 항목을 생성
-          const recItems = film.map(
-            (rec) => `
-                <div class="rec-film-item">
-                    <h6>${rec.title}</h6>
-                    <br />
-                    <strong>제작국가:</strong> ${rec.nation}
-                    <br />
-                    <strong>감독:</strong> ${rec.director}
-                    <br />
-                    <strong>장르:</strong> ${rec.genre}
-                    <br />
-                    <strong>배우:</strong> ${rec.actor}
-                </div>
-            `
-          );
 
-          filmContainer.innerHTML = recItems.join(""); // 영화 목록 HTML 추가
-          savedRecData = recItems; // 영화 항목 데이터 저장
-          createCarouselPages(
-            savedRecData,
-            "rec-five-list",
-            "movie-top-list"
-          ); // 카로셀 페이지 생성
-        },
-        error: function (error) {
-          console.error(
-            "영화 목록을 가져오는 중 오류가 발생했습니다.",
-            error
-          );
-        },
-      });
-    }
+
 
     // 닫기 버튼 클릭 시 모달 닫기
     document.querySelector(".close").addEventListener("click", function () {

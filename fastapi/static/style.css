@@ -63,7 +63,7 @@ label {
 /* 필모그래피 그리드 설정 */
 .filmography-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   /* 한 줄에 5개씩 배치 */
   gap: 15px;
   /* 항목 간 간격 */
@@ -78,13 +78,12 @@ label {
 
 .film-box {
   width: 100%;
-  padding: 10px;
   border: 1px solid #ccc;
   border-radius: 8px;
   box-sizing: border-box;
   background-color: #f9f9f9;
   text-align: center;
-  height: 130px;
+  height: 190px;
   /* 정사각형 박스를 만들기 위한 고정 높이 */
   overflow: hidden;
   /* 넘치는 텍스트는 숨기기 */
@@ -192,12 +191,6 @@ label {
 /* 기본적으로 한 페이지에서 보여야 할 항목들 */
 .carousel-inner {
   display: flex;
-}
-
-.carousel-item {
-  display: flex;
-  justify-content: center;
-  padding: 20px;
 }
 
 .carousel-control-prev svg,

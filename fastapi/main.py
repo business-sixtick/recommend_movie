@@ -339,8 +339,8 @@ app.add_middleware(
 
 
 # 외부 API의 URL과 API 키
-TMDB_AUTH = "Bearer ..-"
-KOBIS_API_KEY = ""
+TMDB_AUTH = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI3YTUyNjJjZTM4ZjkyZDQ1NWM2MDc5NGQ4MmQxNmM4OCIsIm5iZiI6MTczNjgzNDg2Ny45MTgwMDAyLCJzdWIiOiI2Nzg1ZmYzMzk0ZmM4N2VmNDg3YjViYTciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.YH_jlYimyN9Fa8Cd0W6-_SbUjOvBtvNHF4uGByn4EmI"
+KOBIS_API_KEY = "20ddcd10640eb87f69ef2fed167ef9ca"
 KOBIS_BASE_URL = "http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieList.json"
     
 # DB 세션 생성 함수
@@ -419,7 +419,47 @@ async def search_movies(
             
             actor_list = actor_data.get('peopleListResult', {}).get('peopleList', [])
             
-            return JSONResponse(status_code=200, content={"actor_list": actor_list})  # 배우 데이터 반환
+            all_actors_with_profiles = []
+    
+            # 영화 목록 리스트에서 제목과 개봉 연도 정보 추출
+            for actor in actor_list:
+                actor_name = actor.get('peopleNm', '')
+                print(f"영화인 이름: {actor_name}")
+
+                url = f'https://api.themoviedb.org/3/search/person?query={actor_name}&include_adult=true&language=ko-KOR&page=1'
+                headers = {
+                    "accept": "application/json",
+                    "Authorization": TMDB_AUTH
+                }
+
+                response = requests.get(url, headers=headers)
+                
+                # JSON 응답 파싱
+                data = json.loads(response.text)
+                results = data.get('results', [])
+                
+                profile_urls = []
+
+                if results:
+                    for result in results: 
+                        profile_path = result.get('profile_path', '')
+                        if profile_path:
+                            # 포스터 URL 생성
+                            profile_url = f"https://image.tmdb.org/t/p/w220_and_h330_face{profile_path}"
+                            profile_urls.append(profile_url)  # poster_url을 리스트에 추가
+                            print(f"Poster URL: {profile_url}")
+                        else:
+                            print("Poster path not found.")
+                    
+                    # 영화 이름과 매칭된 포스터 URL을 함께 저장
+                    all_actors_with_profiles.append({
+                        'actor_name': actor_name,
+                        'profile_urls': profile_urls  # 각 영화에 대한 포스터 URL 리스트
+                    })
+                else:
+                    print("No results found.")
+            
+            return JSONResponse(status_code=200, content={"actor_list": actor_list, "all_actors_with_profiles": all_actors_with_profiles})  # 배우 데이터 반환
         except requests.exceptions.RequestException as e:
             raise HTTPException(status_code=500, detail=f"배우 검색 실패: {e}")  # 배우 검색 실패 시 처리
     
@@ -566,12 +606,63 @@ def get_actor_details(peopleCd: str):
     print(f"Request URL: {request_url}")  # 터미널에 출력
 
     response = requests.get(ACTOR_DETAIL_URL, params=params)
+    # print(f'response.json(): {response.json()}')
+    
+    data = response.json()
+    filmo_list = data.get('peopleInfoResult', {}).get('peopleInfo', {}).get('filmos', [])
+    print(f'-------------------------{filmo_list}')
+    
+    actor_filmo_list = []
+    
+    for filmo in filmo_list:
+        filmo_name = filmo.get('movieNm','')
+        print(f'filmo name: {filmo_name}')
+        
+        url=f'https://api.themoviedb.org/3/search/movie?query={filmo_name}&include_adult=true&language=ko-KOR&page=1'
+        
+        headers = {
+            "accept": "application/json",
+            "Authorization": TMDB_AUTH
+        }
+        
+        tmdb_response = requests.get(url, headers=headers)
+        # print("--------------------------------------------------")
+        # print(tmdb_response.text)
+        
+        filmo_data = json.loads(tmdb_response.text)
+        results =filmo_data.get('results', [])
+        
+        poster_urls = []
+
+        if results:
+            for result in results: 
+                poster_path = result.get('poster_path', '')
+                if poster_path:
+                    # 포스터 URL 생성
+                    poster_url = f"https://image.tmdb.org/t/p/w220_and_h330_face{poster_path}"
+                    poster_urls.append(poster_url)  # poster_url을 리스트에 추가
+                    print(f"Poster URL: {poster_url}")
+                else:
+                    print("Poster path not found.")
+            
+            # 영화 이름과 매칭된 포스터 URL을 함께 저장
+            actor_filmo_list.append({
+                'filmo_name': filmo_name,
+                'poster_urls': poster_urls  # 각 영화에 대한 포스터 URL 리스트
+            })
         
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Failed to fetch actor details")
     
-    # API 응답 전체 데이터를 그대로 반환
-    return response.json()
+    # 응답 데이터에 actor_filmo_list를 추가하여 반환
+    return {
+        "actor_details": data,
+        "actor_filmo_list": actor_filmo_list
+    }
+
+
+
+
 
 
 MOVIE_DETAIL_URL =  "http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieInfo.json" 
@@ -688,117 +779,6 @@ async def fetch_movie_recommendations(user_id: int, db: Session):
 
 
 
-            
-            
-# # 백그라운드에서 실행할 함수
-# async def fetch_movie_recommendations(user_id: int, db: Session):
-#     # 사용자가 고른 영화 목록을 가져오기
-#     user_fav_movies = db.query(UserFav).filter(UserFav.user_id == user_id).order_by(UserFav.id.desc()).limit(20).all()
-    
-#     movie_titles = [movie.title for movie in user_fav_movies]
-#     movie_codes = [movie.code for movie in user_fav_movies]
-#     print(movie_titles)        
-#     print(movie_codes)
-#     print()
-
-#     # 리스트에서 5개 무작위로 선택
-#     query = str(movie_titles)
-#     role = (
-#         "사용자가 입력한 리스트에서 연관성이 높은 제목 5개를 변경 없이 콤마로 구분해서 리스트 코드 형태로 보여줘. "
-#         "여기서 1개의 기준은 따옴표 안에 있는 것이야. 꼭 응답 포멧을 ['제목','제목','제목','제목','제목'] 으로 해줘"
-#     )
-    
-#     rec_url = f'https://sixtick.duckdns.org/llmpost'
-#     params = {
-#         'role': role,
-#         'query': query
-#     }
-
-#     print(f"Requesting URL: {rec_url}?{requests.compat.urlencode(params)}")
-#     print()
-
-#     # httpx를 사용하여 외부 API로 요청
-#     async with httpx.AsyncClient() as client:
-#         try:
-#             response = await client.post(rec_url, json=params)
-#             response.raise_for_status()  # HTTP 상태 확인
-#             print(response.text)
-#             print()
-
-#             # JSON 데이터 파싱
-#             response_data = response.json()
-#             print()
-
-#             rec_answer = response_data.get('answer', "결과를 찾을 수 없습니다.")
-#             # print(f"rec_answer: {rec_answer}")
-#             # print()
-
-#             # 리스트 부분만 추출 (정규표현식 사용)
-#             list_match = re.search(r"\[.*?\]", rec_answer)  # 대괄호 포함 문자열 찾기 
-#             if list_match:
-#                 titles_to_list = eval(list_match.group())  # 문자열을 리스트로 변환
-#                 print(f'titles_to_list: {titles_to_list}')
-#                 print()
-
-#                 movie_code_list = []
-
-#                 for title in titles_to_list:
-#                     print("-------------------------------")
-#                     if title in movie_titles:
-#                         index = movie_titles.index(title)  # 제목의 인덱스를 찾음
-#                         movie_code = movie_codes[index]  # 해당 제목에 맞는 movie_code를 가져옴
-#                         print(movie_code)
-#                         movie_code_list.append(movie_code)
-
-#                 # 영화 코드 목록을 담은 URL을 만들어서 클라이언트에게 전달할 수 있도록 처리
-#                 rec_urls = []  # 추천 URL 리스트
-
-#                 # 영화 코드 리스트로 외부 API를 통해 영화 정보 가져오기
-#                 for movie_code in movie_code_list:
-#                     api_url = "http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieInfo.json"
-#                     params = {
-#                         'key': KOBIS_API_KEY,  # API 키
-#                         'movieCd': movie_code  # 영화 코드
-#                     }
-
-#                     try:
-#                         # 외부 API 요청
-#                         async with httpx.AsyncClient() as client:
-#                             response = await client.get(api_url, params=params)
-#                             if response.status_code == 200:
-#                                 data = response.json()  # JSON 형식으로 응답 받기
-#                                 rec_five_list = data.get('movieInfoList', {}).get('movieInfo', {})
-                                
-#                                 return JSONResponse(status_code=200, content={"rec_five_list": rec_five_list})
-#                             else:
-#                                 print(f"API 요청 실패: {response.status_code}")
-#                     except Exception as e:
-#                         print(f"API 요청 오류: {e}")
-
-#                 try:
-#                     # 추천 영화 정보를 DB에 저장
-#                     rec_fav = RecFav(
-#                         user_id=user_id,
-#                         movie_code=str(movie_code_list)
-#                     )
-#                     db.add(rec_fav)  # DB에 추가
-#                     db.commit()
-#                     db.refresh(rec_fav)
-#                     print("=======================================complete")
-#                 except Exception as e:
-#                     print(f"fail saving: {e}")
-
-#             # 클라이언트에게 영화 정보를 전달하기 위해 background_tasks를 사용하여 UI 갱신
-#             send_movie_recommendations_to_client(rec_urls)
-
-#         except httpx.RequestError as exc:
-#             print(f"An error occurred: {exc}")
-
-# # 클라이언트로 영화 추천 정보를 전달하는 함수
-# async def send_movie_recommendations_to_client(rec_urls: List[dict]):
-#     # 클라이언트로 영화 정보를 보내는 예시 (여기서는 웹소켓이나 다른 메커니즘을 사용할 수 있음)
-#     # 예시: 클라이언트에 정보를 보내는 코드 (실제 구현 필요)
-#     print("추천 영화 정보:", rec_urls)
 
 
 # 선택한 영화 데이터를 데이터베이스에 저장
@@ -861,7 +841,7 @@ async def save_movie(
     
     
     
-    
+# 사용자에게 추천할 영화 추출해서 리스트로 만들기 
 @app.post("/selected_movies")
 async def selected_movies(
     # background_tasks: BackgroundTasks,
@@ -878,118 +858,35 @@ async def selected_movies(
         
         movie_list = []
         for fav in rec_fav_list:
-            print(fav)
+            # print(fav)
             
             movie= db.query(UserFav).filter_by(code=fav).first()
-            print(movie.title)
+            print(f'-----------------{movie.title}')
+            url = f'https://api.themoviedb.org/3/search/movie?query={movie.title}&include_adult=true&language=ko-KOR&page=1'
+            
+            headers = {
+                "accept": "application/json",
+                "Authorization": TMDB_AUTH
+            }
+            
+            tmdb_response = requests.get(url, headers=headers)
+            # print("--------------------------------------------------")
+            # print(tmdb_response.text)
+            
+            tmdb_data = json.loads(tmdb_response.text)
+            results =tmdb_data.get('results', [])
+            
+            if results:
+                for result in results: 
+                    poster_path = result.get('poster_path', '')
+                    if poster_path:
+                        # 포스터 URL 생성
+                        poster_url = f"https://image.tmdb.org/t/p/w220_and_h330_face{poster_path}"
+                        movie.url = poster_url
+                        print(f"Poster URL: {poster_url}")
+                    else:
+                        print("Poster path not found.")
             movie_list.append(movie)
 
-        
         return movie_list
     
-    
-
-    
-
-
-
-
-
-
-# # 사용자 아이디로 추천 영화 목록을 가져오는 API
-# @app.get("/rec_movies")
-# async def rec_movies(
-#     db: Session = Depends(get_db),
-#     access_token: Optional[str] = Cookie(None),  # 쿠키에서 access_token을 받음
-# ):
-#     try:
-#         # access_token으로 사용자 정보 가져오기
-#         user = get_user_from_token(access_token, db)
-        
-#         if not user:
-#             raise HTTPException(status_code=401, detail="Invalid or missing access token.")
-        
-#         # 사용자가 고른 영화 목록을 가져오기
-#         user_fav_movies = db.query(UserFav).filter(UserFav.user_id == user.id).order_by(UserFav.id.desc()).limit(20).all()
-#         # db.query(UserFav).order_by(UserFav.id.desc()).limit(20).all()
-        
-#         movie_titles = [movie.title for movie in user_fav_movies]
-#         movie_codes = [movie.code for movie in user_fav_movies]
-#         print(movie_titles)        
-#         print(movie_codes)
-#         print()
-        
-#         query = str(movie_titles)
-#         role = (
-#             "사용자가 입력한 리스트에서 랜덤으로 무조건 5개를 뽑아서 글자 변경 없이 그대로 가져와서 대괄호 안에 넣어서 리스트 형태로 보여줘. 여기서 1개의 기준은 따옴표 안에 있는 것이야."
-#         )
-        
-#         rec_url = f'https://sixtick.duckdns.org/llmpost'
-#         params = {
-#             'role': role,
-#             'query': query # 전송할 수 있도록 변환하는 과정인 직렬화 # 파이썬 객체를 문자열로 변환 
-#         }
-        
-#         print(f"Requesting URL: {rec_url}?{requests.compat.urlencode(params)}")
-#         # requests.compat.urlencode는 Python 2와 3에서 URL 인코딩을 다르게 처리할 수 있기 때문에, 두 버전에서 모두 동일하게 작동하도록 하기 위해 사용됩니다
-#         print()
-        
-#         # httpx를 사용하여 외부 API로 요청
-#         async with httpx.AsyncClient() as client: # httpx를 사용하여 비동기 HTTP 클라이언트를 생성합니다.
-#             try:
-#                 response = await client.post(rec_url, json=params)
-#                 response.raise_for_status()  # HTTP 상태 확인
-#                 print(response.text)
-#                 print()
-
-#                 # JSON 데이터 파싱
-#                 response_data = response.json()  # 응답 텍스트를 JSON으로 변환
-#                 # print(response_data)
-#                 print()
-#                 rec_answer = response_data.get('answer', "결과를 찾을 수 없습니다.")  # answer 키 추출
-#                 print(f"rec_answer: {rec_answer}")
-#                 print()
-                
-#                 # 리스트 부분만 추출 (정규표현식 사용)
-#                 list_match = re.search(r"\[.*?\]", rec_answer)  # 대괄호 포함 문자열 찾기 
-#                 if list_match:
-#                     titles_to_list = eval(list_match.group())  # 문자열을 리스트로 변환
-#                     print(f'titles_to_list: {titles_to_list}')
-#                     print()
-                    
-#                     rec_urls = []  # 여러 개의 URL을 담을 리스트
-
-#                     for title in titles_to_list:
-#                         if title in movie_titles:  # 제목이 movie_titles에 있는지 확인
-#                             index = movie_titles.index(title)  # 제목의 인덱스를 찾음
-#                             movie_code = movie_codes[index]  # 해당 제목에 맞는 movie_code를 가져옴
-
-#                             # URL 생성
-#                             params = {
-#                                 "key": KOBIS_API_KEY,
-#                                 "movieCd": movie_code
-#                             }
-#                             rec_url = f"{MOVIE_DETAIL_URL}?{urlencode(params)}"
-#                             print(f"Generated URL for movie '{title}': {rec_url}")  # URL 확인용 출력
-
-#                             # movie_code와 일치하는 title을 클라이언트에게 표시 (console.log)
-#                             print(f"Movie Code: {movie_code} corresponds to Title: {title}")
-
-#                             rec_urls.append(rec_url)  # 생성된 URL을 리스트에 추가
-
-#                 else:
-#                     print("리스트를 찾을 수 없습니다.")
-                
-#             except httpx.HTTPStatusError as http_error:
-#                 print(http_error)
-#                 return JSONResponse(content={"error": f"HTTP Error: {http_error}"}, status_code=400)
-#             except httpx.RequestError as request_error:
-#                 print(request_error)
-#                 return JSONResponse(content={"error": f"Request Error: {request_error}"}, status_code=400)
-        
-#         # 여러 개의 URL을 반환
-#         print(f"rec_urls: {rec_urls}")  # 반환 직전에 출력 확인
-#         return {"rec_urls": rec_urls}  # rec_urls 리스트 반환
-            
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Error occurred-----------------------------: {str(e)}")
