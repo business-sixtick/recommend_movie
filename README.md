@@ -1,5 +1,6 @@
 # recommend_movie
 LLM 기반 영화 추천 프로그램
+PPT : https://business-sixtick.github.io/recommend_movie/
 
 ## 팀원
 - 책임자, 코더 : 안채연 (achaeyeon18@gmail.com)
