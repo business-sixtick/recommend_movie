@@ -86,6 +86,7 @@ class User(Base):
     
     favorites = relationship("UserFav", back_populates="user")  # User와 UserFav 관계 설정
     
+    
 class UserFav(Base):
     __tablename__ = 'user_fav'
     
@@ -95,19 +96,21 @@ class UserFav(Base):
     user_id = Column(Integer, ForeignKey('users.id'))  # ForeignKey and primary_key order corrected
     code = Column(String(255))  # Movie code added
     title = Column(String(255))
-    director = Column(String(255))  # Array of strings for director
-    actor = Column(String(500))  # Array of strings for actor
-    genre = Column(String(255))  # Array of strings for genre
-    nation = Column(String(255))  # Array of strings for nation
+    director = Column(String(255))
+    actor = Column(String(500))  
+    genre = Column(String(255))  
+    nation = Column(String(255))  
 
     user = relationship("User", back_populates="favorites")
+
 
 class RecFav(Base):
     __tablename__ = 'rec_fav'
     
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('users.id'))  # ForeignKey and primary_key order corrected
-    movie_code = Column(String(255))
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)  # ForeignKey and primary_key order corrected
+    movie_code = Column(String(255), nullable=False)
+
 
 # Pydantic schemas
 class UserCreate(BaseModel):
@@ -186,10 +189,6 @@ templates = Jinja2Templates(directory="templates")
 
 
 
-# # 회원 가입 페이지 제공
-# @app.get("/register", response_class=HTMLResponse)
-# def register_page(request: Request):
-#     return templates.TemplateResponse("register.html", {"request": request})
 
 # 회원 가입을 처리하는 api
 @app.post("/register", response_model=dict)
@@ -384,7 +383,7 @@ def get_user_from_token(access_token: Optional[str] = Cookie(None), db: Session 
 @app.post("/check-login")
 async def check_login(
     access_token: Optional[str] = Cookie(None),
-    db: Session = Depends(get_db)  # DB 세션 의존성 추가
+    # db: Session = Depends(get_db)  # DB 세션 의존성 추가
 ):
     print(f"Received access_token: {access_token}")  # 디버깅 로그
     try:
@@ -489,13 +488,14 @@ async def search_movies(
             try:
                 response = await client.get(llm_url, params=params)
                 response.raise_for_status()  # HTTP 상태 확인
-                print(response.text)
+                print(response.status_code)
+                print(f'+++++++++++{response.text}')
 
                 # JSON 데이터 파싱
                 response_data = response.json()  # 응답 텍스트를 JSON으로 변환
                 print(response_data)
                 llmAnswer = response_data.get('answer', "결과를 찾을 수 없습니다.")  # answer 키 추출
-                print(llmAnswer)
+                print(f'----------------------------------------{llmAnswer}')
                 
                 return JSONResponse(content={"llmAnswer": llmAnswer}, status_code=200)  # answer만 반환
             except httpx.HTTPStatusError as http_error:
@@ -855,7 +855,10 @@ async def selected_movies(
         
         # user_id와 code 조합 중복 체크
         rec_fav = db.query(RecFav).filter_by(user_id=user.id).order_by(RecFav.id.desc()).first()
-        print(f'========================================={rec_fav.movie_code}')
+        print(f'#################{rec_fav}')
+        print()
+        # print(f'========================================={rec_fav.movie_code}')
+        print()
         rec_fav_list = eval(rec_fav.movie_code)
         print(f'========================================={type(rec_fav_list)}')
         

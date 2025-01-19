@@ -966,7 +966,9 @@ function clearPreviousResults() {
           const recItems = film.map(
             (rec) => `
                 <div class="rec-film-item">
-                  <img src="${rec.url}" alt="${rec.title}" style="width: 200px; height: 280px; object-fit: fill; border-radius: 8px;">
+                  ${rec.url ==='이미지 없음' ?
+                  `<span>이미지 없음</span>` :
+                  `<img src="${rec.url}" alt="${rec.title}" style="width: 200px; height: 280px; object-fit: fill; border-radius: 8px;"> `}
                     <h6>${rec.title}</h6>
                     <br />
                     <strong>제작국가:</strong> ${rec.nation}
@@ -991,7 +993,7 @@ function clearPreviousResults() {
         },
         error: function (error) {
           console.error(
-            "영화 목록을 가져오는 중 오류가 발생했습니다.",
+            "영화 추천 목록을 가져오는 중 오류가 발생했습니다.",
             error
           );
         },
