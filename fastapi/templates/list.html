@@ -117,11 +117,13 @@
     <h3 id="search-title" style="display: none;">검색 결과</h3>
     <div class="carousel-inner" id="carousel-inner">
       <!-- 첫 번째 항목: 영화 리스트 -->
-      <div class="carousel-item active" id="movie-item" style="padding: 0px !important; display: flex; justify-content: center;">
+      <div class="carousel-item active" id="movie-item"
+        style="padding: 0px !important; display: flex; justify-content: center;">
         <div class="movie-top-list" id="movie-list"></div>
       </div>
       <!-- 두 번째 항목: 배우 리스트 -->
-      <div class="carousel-item active" id="actor-item" style="padding: 0px !important; display: flex; justify-content: center;">
+      <div class="carousel-item active" id="actor-item"
+        style="padding: 0px !important; display: flex; justify-content: center;">
         <div class="actor-top-list" id="actor-list"></div>
       </div>
     </div>
@@ -239,7 +241,8 @@
           <button type="button" class="btn btn-secondary" id="backButton" style="display: none">
             <i class="fa fa-arrow-left"></i> 뒤로 가기
           </button>
-          <h5 class="modal-title" id="movieDetailLabel" style="display: flex; justify-content: center; width: 100%;">영화 상세 정보</h5>
+          <h5 class="modal-title" id="movieDetailLabel" style="display: flex; justify-content: center; width: 100%;">영화
+            상세 정보</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
@@ -263,7 +266,8 @@
       <div class="modal-content">
         <!-- 모달 헤더 -->
         <div class="modal-header">
-          <h5 class="modal-title" id="actorDetailLabel" style="display: flex; justify-content: center; width: 100%;">영화인 상세 정보</h5>
+          <h5 class="modal-title" id="actorDetailLabel" style="display: flex; justify-content: center; width: 100%;">영화인
+            상세 정보</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
@@ -540,15 +544,15 @@
 
       searchButton.addEventListener("click", function (event) {
         event.preventDefault(); // 페이지 새로고침 방지
-            // 리사이즈 중에는 이전 결과 초기화 함수 실행되지 않도록
-    if (!isResizing) {
-      clearPreviousResults(); // 검색 결과 초기화
-    }
+        // 리사이즈 중에는 이전 결과 초기화 함수 실행되지 않도록
+        if (!isResizing) {
+          clearPreviousResults(); // 검색 결과 초기화
+        }
         search(); // 검색 함수 호출
         recListContent(); // 추천 리스트 생성
         setTimeout(showRecList, 500); // 검색 후 약간의 지연 후에 결과 표시
-        document.getElementById("search-title").style.display = "flex";
-        document.getElementById("rec-title").style.display = "flex";
+        document.getElementById("search-title").style.cssText = "justify-content: center; display: flex;";
+        document.getElementById("rec-title").style.cssText = "justify-content: center; display: flex;";
       });
 
       document
@@ -556,15 +560,13 @@
         .addEventListener("keydown", function (event) {
           if (event.key === "Enter") {
             event.preventDefault(); // 페이지 새로고침 방지
-                // 리사이즈 중에는 이전 결과 초기화 함수 실행되지 않도록
-    if (!isResizing) {
-      clearPreviousResults(); // 검색 결과 초기화
-    }
+            // 리사이즈 중에는 이전 결과 초기화 함수 실행되지 않도록
+            if (!isResizing) {
+              clearPreviousResults(); // 검색 결과 초기화
+            }
             search();
             recListContent();
             setTimeout(showRecList, 500);
-            document.getElementById("search-title").style.display = "flex";
-            document.getElementById("rec-title").style.display = "flex";
             document.getElementById("search-title").style.cssText = "justify-content: center; display: flex;";
             document.getElementById("rec-title").style.cssText = "justify-content: center; display: flex;";
           }
@@ -573,28 +575,28 @@
 
 
 
-        // 이전 검색 결과 초기화 함수
-function clearPreviousResults() {
-  console.log("clearPreviousResults called");
+    // 이전 검색 결과 초기화 함수
+    function clearPreviousResults() {
+      console.log("clearPreviousResults called");
 
-  const resultsContainer = document.getElementById("carousel-inner");
-  resultsContainer.innerHTML = ""; // 기존 결과 초기화
+      const resultsContainer = document.getElementById("carousel-inner");
+      resultsContainer.innerHTML = ""; // 기존 결과 초기화
 
-  // 검색 결과를 숨기기 (필요한 경우)
-  document.getElementById("rec-five-list").style.display = "none"; 
-  document.getElementById("search-title").style.display = "none"; 
-  document.getElementById("rec-title").style.display = "none";
+      // 검색 결과를 숨기기 (필요한 경우)
+      document.getElementById("rec-five-list").style.display = "none";
+      document.getElementById("search-title").style.display = "none";
+      document.getElementById("rec-title").style.display = "none";
 
-  document.getElementById("title-query").value = "";
-  document.getElementById("actor-query").value = "";
-  document.getElementById("director-query").value = "";
-  document.getElementById("nation-query").value = "";
+      document.getElementById("title-query").value = "";
+      document.getElementById("actor-query").value = "";
+      document.getElementById("director-query").value = "";
+      document.getElementById("nation-query").value = "";
 
-    // 저장된 검색 데이터도 초기화
-    savedMovieData = [];
-  savedActorData = [];
-  savedRecData = [];
-}
+      // 저장된 검색 데이터도 초기화
+      savedMovieData = [];
+      savedActorData = [];
+      savedRecData = [];
+    }
 
 
 
@@ -809,7 +811,7 @@ function clearPreviousResults() {
       console.log("itemsPerPage: ", itemsPerPage);
 
       const totalPages = Math.ceil(items.length / itemsPerPage);
-      
+
       console.log("items.length: ", items.length);
       console.log("total page: ", totalPages);
 
@@ -929,8 +931,8 @@ function clearPreviousResults() {
             return `
                 <div class="actor-list" data-actorCd="${actor.peopleCd}">
                       ${profile_url === '이미지 없음' ?
-            `<span>이미지 없음</span>` :
-            `<img src="${profile_url}" alt="${actor.peopleNm}" style="width: 200px; height: 280px; object-fit: fill; border-radius: 8px;">`}
+                `<span>이미지 없음</span>` :
+                `<img src="${profile_url}" alt="${actor.peopleNm}" style="width: 200px; height: 280px; object-fit: fill; border-radius: 8px;">`}
                     <!-- <p><strong>영화인 코드:</strong> ${actor.peopleCd}</p> -->
                     <p><strong>분야:</strong> ${actor.repRoleNm}</p>
                     <p><strong>참여 영화:</strong> ${movieTitles}</p>
@@ -967,9 +969,9 @@ function clearPreviousResults() {
           const recItems = film.map(
             (rec) => `
                 <div class="rec-film-item">
-                  ${rec.url ==='이미지 없음' ?
-                  `<span>이미지 없음</span>` :
-                  `<img src="${rec.url}" alt="${rec.title}" style="width: 200px; height: 280px; object-fit: fill; border-radius: 8px;"> `}
+                  ${rec.url === '이미지 없음' ?
+                `<span>이미지 없음</span>` :
+                `<img src="${rec.url}" alt="${rec.title}" style="width: 200px; height: 280px; object-fit: fill; border-radius: 8px;"> `}
                     <h6>${rec.title}</h6>
                     <br />
                     <strong>제작국가:</strong> ${rec.nation}
@@ -1003,50 +1005,50 @@ function clearPreviousResults() {
 
 
 
-    
+
     let resizeTimeout;
-let isResizing = false; // 리사이즈 중인지 체크하는 플래그
+    let isResizing = false; // 리사이즈 중인지 체크하는 플래그
 
-// 리사이즈 이벤트
-window.addEventListener("resize", (event) => {
-  // 리사이즈 중에는 초기화 함수 실행되지 않도록 방지
-  isResizing = true;
+    // 리사이즈 이벤트
+    window.addEventListener("resize", (event) => {
+      // 리사이즈 중에는 초기화 함수 실행되지 않도록 방지
+      isResizing = true;
 
-  // 이전 타이머를 클리어하고 새로운 타이머를 설정
-  clearTimeout(resizeTimeout);
+      // 이전 타이머를 클리어하고 새로운 타이머를 설정
+      clearTimeout(resizeTimeout);
 
-  resizeTimeout = setTimeout(() => {
-    // 리사이즈 완료 후, isResizing을 false로 변경
-    isResizing = false;
+      resizeTimeout = setTimeout(() => {
+        // 리사이즈 완료 후, isResizing을 false로 변경
+        isResizing = false;
 
-    // 영화 데이터에 대해 carousel 페이지 생성
-    if (savedMovieData && savedMovieData.length > 0) {
-      createCarouselPages(
-        savedMovieData,
-        "carousel-inner",
-        "movie-top-list"
-      );
-    }
+        // 영화 데이터에 대해 carousel 페이지 생성
+        if (savedMovieData && savedMovieData.length > 0) {
+          createCarouselPages(
+            savedMovieData,
+            "carousel-inner",
+            "movie-top-list"
+          );
+        }
 
-    // 배우 데이터에 대해 carousel 페이지 생성
-    if (savedActorData && savedActorData.length > 0) {
-      createCarouselPages(
-        savedActorData,
-        "carousel-inner",
-        "actor-top-list"
-      );
-    }
+        // 배우 데이터에 대해 carousel 페이지 생성
+        if (savedActorData && savedActorData.length > 0) {
+          createCarouselPages(
+            savedActorData,
+            "carousel-inner",
+            "actor-top-list"
+          );
+        }
 
-    // 추천 데이터에 대해 carousel 페이지 생성
-    if (savedRecData && savedRecData.length > 0) {
-      createCarouselPages(
-        savedRecData,
-        "rec-five-list",
-        "movie-top-list"
-      );
-    }
-  }, 500); // 500ms 후에 실행
-});
+        // 추천 데이터에 대해 carousel 페이지 생성
+        if (savedRecData && savedRecData.length > 0) {
+          createCarouselPages(
+            savedRecData,
+            "rec-five-list",
+            "movie-top-list"
+          );
+        }
+      }, 500); // 500ms 후에 실행
+    });
 
 
 
@@ -1085,11 +1087,11 @@ window.addEventListener("resize", (event) => {
               if (actor.filmos && actor.filmos.length > 0) {
                 actor.filmos.forEach((film) => {
                   const matchingFilmo = actor_filmo_list.find(filmo => filmo.filmo_name === film.movieNm);
-                  const posterImg = matchingFilmo && matchingFilmo.poster_urls.length > 0 
+                  const posterImg = matchingFilmo && matchingFilmo.poster_urls.length > 0
                     ? `<img src="${matchingFilmo.poster_urls[0]}" alt="${film.movieNm}" style="height: 190px;">`
                     : ''; // 포스터가 없는 경우 빈 문자열
 
-                    filmographyContent += `
+                  filmographyContent += `
                       <div class="film-item">
                         <div class="film-box" data-moviecd="${film.movieCd}" style='padding: 0;'>
                           ${posterImg}

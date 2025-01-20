@@ -383,11 +383,11 @@ def get_user_from_token(access_token: Optional[str] = Cookie(None), db: Session 
 @app.post("/check-login")
 async def check_login(
     access_token: Optional[str] = Cookie(None),
-    # db: Session = Depends(get_db)  # DB 세션 의존성 추가
+    db: Session = Depends(get_db)  # DB 세션 의존성 추가
 ):
     print(f"Received access_token: {access_token}")  # 디버깅 로그
     try:
-        # user = get_user_from_token(access_token, db)
+        user = get_user_from_token(access_token, db)
         return {"isLoggedIn": True}
     except HTTPException:
         return {"isLoggedIn": False}
@@ -711,7 +711,9 @@ async def fetch_movie_recommendations(user_id: int, db: Session):
     # 리스트에서 5개 무작위로 선택
     query = str(movie_titles)
     role = (
-        "사용자가 입력한 리스트에서 연관성이 높은 제목 5개를 변경 없이 콤마로 구분해서 리스트 코드 형태로 보여줘. 여기서 1개의 기준은 따옴표 안에 있는 것이야. 꼭 응답 포멧을 ['제목','제목','제목','제목','제목'] 으로 해줘"
+        "사용자가 입력한 리스트에서 제목 5개를 이름 변경 없이 콤마로 구분해서 리스트 코드 형태로 보여줘.\
+            각 요소는 중복이 되면 안 되고 모두 달라야 해. 여기서 1개의 기준은 따옴표 안에 있는 것이야.\
+            꼭 응답 포멧을 ['제목','제목','제목','제목','제목'] 으로 해줘"
     )
     
     rec_url = f'https://sixtick.duckdns.org/llmpost'
@@ -857,15 +859,11 @@ async def selected_movies(
         rec_fav = db.query(RecFav).filter_by(user_id=user.id).order_by(RecFav.id.desc()).first()
         print(f'#################{rec_fav}')
         print()
-        # print(f'========================================={rec_fav.movie_code}')
-        print()
         rec_fav_list = eval(rec_fav.movie_code)
         print(f'========================================={type(rec_fav_list)}')
         
         movie_list = []
-        for fav in rec_fav_list:
-            # print(fav)
-            
+        for fav in rec_fav_list:            
             movie= db.query(UserFav).filter_by(code=fav).first()
             print(f'-----------------{movie.title}')
             url = f'https://api.themoviedb.org/3/search/movie?query={movie.title}&include_adult=true&language=ko-KOR&page=1'
