@@ -595,11 +595,62 @@ async def search_movies(
 
 
 
+# 영화 제목과 연도로 tmdb에서 사진 데이터를 갖고온다 
+def fetch_movie_posters(movie_code: str) -> List[str]:
+    params = {
+        "key": KOBIS_API_KEY,
+        "movieCd": movie_code
+    }
+        
+    response = requests.get(MOVIE_DETAIL_URL, params=params)    
+    data = response.json()
+    movie_title = data.get('movieInfoResult', {}).get('movieInfo', {}).get('movieNm', '')
+    rel_year = data.get('movieInfoResult', {}).get('movieInfo', {}).get('prdtYear', '')
+    print(f'movie_title: {movie_title}, rel_year: {rel_year}')
+    
+    url = f"https://api.themoviedb.org/3/search/movie?query={movie_title}&include_adult=true&language=ko-KOR&page=1&year={rel_year}"
+
+    headers = {
+        "accept": "application/json",
+        "Authorization": TMDB_AUTH
+    }
+
+    # status code 200
+    response = requests.get(url, headers=headers)
+
+    # JSON 응답 파싱
+    data = json.loads(response.text)
+    results = data.get('results', [])
+    
+    poster_urls = []
+
+    if results:
+        for result in results:
+            result_title = result.get('title', '')
+            release_date = result.get('release_date', '')  # 형식: "YYYY-MM-DD"
+            release_year = release_date[:4] if release_date else ''  # 앞 4자리만 가져와 연도로 사용
+            
+            # 제목과 연도가 정확히 일치하는지 확인
+            if result_title == movie_title and release_year == rel_year:
+                poster_path = result.get('poster_path', '')
+                if poster_path:
+                    # 포스터 URL 생성
+                    poster_url = f"https://image.tmdb.org/t/p/w220_and_h330_face{poster_path}"
+                    print(f'poster_url: {poster_url}')
+                    poster_urls.append(poster_url)
+                else:
+                    print("Poster path not found.")
+    else:
+        print("No results found.")
+    
+    return poster_urls
+
+
 ACTOR_DETAIL_URL = "http://www.kobis.or.kr/kobisopenapi/webservice/rest/people/searchPeopleInfo.json"
 
 # 영화인 상세정보 모달창 
 @app.get("/actorDetails/{peopleCd}")
-def get_actor_details(peopleCd: str):
+def get_actor_details(peopleCd: str, background_tasks: BackgroundTasks):
     params = {
         "key": KOBIS_API_KEY,
         "peopleCd": peopleCd
@@ -618,41 +669,17 @@ def get_actor_details(peopleCd: str):
     actor_filmo_list = []
     
     for filmo in filmo_list:
-        filmo_name = filmo.get('movieNm','')
-        print(f'filmo name: {filmo_name}')
+        filmo_name = filmo.get('movieNm', '')
+        movie_code = filmo.get('movieCd','')
+        print(f'movie_code: {movie_code}')
         
-        url=f'https://api.themoviedb.org/3/search/movie?query={filmo_name}&include_adult=true&language=ko-KOR&page=1'
-        
-        headers = {
-            "accept": "application/json",
-            "Authorization": TMDB_AUTH
-        }
-        
-        tmdb_response = requests.get(url, headers=headers)
-        # print("--------------------------------------------------")
-        # print(tmdb_response.text)
-        
-        filmo_data = json.loads(tmdb_response.text)
-        results =filmo_data.get('results', [])
-        
-        poster_urls = []
-
-        if results:
-            for result in results: 
-                poster_path = result.get('poster_path', '')
-                if poster_path:
-                    # 포스터 URL 생성
-                    poster_url = f"https://image.tmdb.org/t/p/w220_and_h330_face{poster_path}"
-                    poster_urls.append(poster_url)  # poster_url을 리스트에 추가
-                    print(f"Poster URL: {poster_url}")
-                else:
-                    print("Poster path not found.")
+        background_tasks.add_task(fetch_movie_posters, movie_code)
             
-            # 영화 이름과 매칭된 포스터 URL을 함께 저장
-            actor_filmo_list.append({
-                'filmo_name': filmo_name,
-                'poster_urls': poster_urls  # 각 영화에 대한 포스터 URL 리스트
-            })
+        # 영화 이름과 매칭된 포스터 URL을 함께 저장
+        actor_filmo_list.append({
+            'filmo_name': filmo_name,
+            'poster_urls': [] 
+        })
         
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Failed to fetch actor details")
