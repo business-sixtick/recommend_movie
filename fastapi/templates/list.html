@@ -655,6 +655,7 @@ function clearPreviousResults() {
           } else {
             // 로그인되지 않으면 모달 띄우기
             $("#modalBackground").modal("show");
+            showLogin(); // Show login form by default
           }
         },
       });
