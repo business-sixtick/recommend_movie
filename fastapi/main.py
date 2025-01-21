@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, Request, Form, Response, Cookie, Body, Query, BackgroundTasks
+from fastapi import FastAPI, Depends, HTTPException, Request, Form, Response, Cookie, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse         
 from passlib.context import CryptContext
@@ -12,7 +12,6 @@ from fastapi.templating import Jinja2Templates
 from starlette.requests import Request
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import sessionmaker, Session, relationship
-from sqlalchemy.dialects.postgresql import ARRAY  # For PostgreSQL support
 from typing import Optional
 import json
 import base64
@@ -23,13 +22,9 @@ from urllib.parse import urlencode
 from dotenv import load_dotenv
 import os
 import httpx
-from urllib.parse import quote
 import re
 from typing import List
-# from fastapi.security import OAuth2PasswordBearer
-
-# # OAuth2PasswordBearer를 사용하여 토큰을 받아오는 방식
-# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+from typing import Dict
 
 
 
@@ -593,10 +588,8 @@ async def search_movies(
 
 
 
-
-
 # 영화 제목과 연도로 tmdb에서 사진 데이터를 갖고온다 
-def fetch_movie_posters(movie_code: str) -> List[str]:
+async def fetch_movie_posters(movie_code: str) -> List[str]:
     params = {
         "key": KOBIS_API_KEY,
         "movieCd": movie_code
@@ -646,11 +639,20 @@ def fetch_movie_posters(movie_code: str) -> List[str]:
     return poster_urls
 
 
+@app.get("/fetchPosters/{movie_code}")
+async def fetch_and_update_posters(movie_code: str):
+    # 포스터를 가져오는 작업을 수행하고 결과를 반환
+    posters = await fetch_movie_posters(movie_code)
+    if not posters:
+        raise HTTPException(status_code=404, detail="Failed to fetch posters")
+    return {"message": "Posters fetched successfully", "posters": posters}
+
+
 ACTOR_DETAIL_URL = "http://www.kobis.or.kr/kobisopenapi/webservice/rest/people/searchPeopleInfo.json"
 
 # 영화인 상세정보 모달창 
 @app.get("/actorDetails/{peopleCd}")
-def get_actor_details(peopleCd: str, background_tasks: BackgroundTasks):
+def get_actor_details(peopleCd: str):
     params = {
         "key": KOBIS_API_KEY,
         "peopleCd": peopleCd
@@ -665,30 +667,15 @@ def get_actor_details(peopleCd: str, background_tasks: BackgroundTasks):
     data = response.json()
     filmo_list = data.get('peopleInfoResult', {}).get('peopleInfo', {}).get('filmos', [])
     print(f'-------------------------{filmo_list}')
-    
-    actor_filmo_list = []
-    
-    for filmo in filmo_list:
-        filmo_name = filmo.get('movieNm', '')
-        movie_code = filmo.get('movieCd','')
-        print(f'movie_code: {movie_code}')
-        
-        background_tasks.add_task(fetch_movie_posters, movie_code)
-            
-        # 영화 이름과 매칭된 포스터 URL을 함께 저장
-        actor_filmo_list.append({
-            'filmo_name': filmo_name,
-            'poster_urls': [] 
-        })
         
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Failed to fetch actor details")
     
-    # 응답 데이터에 actor_filmo_list를 추가하여 반환
-    return {
-        "actor_details": data,
-        "actor_filmo_list": actor_filmo_list
-    }
+    return {"actor_details": data}
+
+
+
+
 
 
 
